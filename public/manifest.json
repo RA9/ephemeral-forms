@@ -1,0 +1,17 @@
+{
+  "name": "Ephemeral Forms",
+  "short_name": "E-Forms",
+  "description": "Zero-login, offline-first form builder.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fc",
+  "theme_color": "#6c5ce7",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/isometric/512/form.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

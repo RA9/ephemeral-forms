@@ -1,0 +1,154 @@
+/* ===== PLUGIN STYLES ===== */
+
+/* Plugin Cards */
+.plugins-grid {
+  margin-bottom: var(--space-6);
+}
+
+.plugin-card {
+  padding: var(--space-5);
+  transition: all var(--transition-normal);
+}
+.plugin-card:hover {
+  transform: translateY(-2px);
+}
+.plugin-card.disabled {
+  opacity: 0.6;
+}
+
+.plugin-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.plugin-icon {
+  font-size: 2rem;
+  width: 48px; height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.plugin-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.plugin-name {
+  font-size: var(--font-md);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-1);
+}
+
+.plugin-version {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+.plugin-desc {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--space-3);
+}
+
+.plugin-tags {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Plugin Info Section */
+.plugin-info-section {
+  padding: var(--space-6);
+}
+
+.plugin-capabilities {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.capability-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.capability-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+/* Star Rating */
+.star-rating-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.star-rating-stars {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--gray-300);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: var(--space-1);
+  line-height: 1;
+}
+.star-btn.active,
+.star-btn.hover {
+  color: #fdcb6e;
+  transform: scale(1.1);
+}
+.star-btn:hover {
+  transform: scale(1.2);
+}
+
+.star-rating-label {
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+}
+
+/* Signature Pad */
+.signature-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.signature-canvas {
+  width: 100%;
+  max-width: 500px;
+  height: 160px;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-md);
+  cursor: crosshair;
+  touch-action: none;
+  background: white;
+}
+[data-theme="dark"] .signature-canvas {
+  background: var(--gray-100);
+}
+
+.signature-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .plugin-capabilities {
+    grid-template-columns: 1fr;
+  }
+}
