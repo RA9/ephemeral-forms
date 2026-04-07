@@ -166,6 +166,7 @@
 .analytics-chart-container {
   margin: var(--space-5) 0;
   max-width: 500px;
+  width: 100%;
 }
 
 .analytics-question-stats {
@@ -399,11 +400,33 @@
   .ana-q-header {
     flex-direction: column;
   }
+  .ana-timeline {
+    padding: var(--space-4);
+  }
+  .ana-timeline-chart {
+    margin: 0 calc(-1 * var(--space-2));
+  }
+  .analytics-chart-container {
+    max-width: 100%;
+  }
+  .analytics-question-card {
+    padding: var(--space-4);
+  }
+  .ana-q-meta {
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 480px) {
   .ana-overview {
     grid-template-columns: 1fr;
+  }
+  .ana-scale-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+  }
+  .ana-word-cloud {
+    gap: var(--space-1);
   }
 }
 

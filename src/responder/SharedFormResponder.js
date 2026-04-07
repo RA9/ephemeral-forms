@@ -76,7 +76,7 @@ export async function renderSharedFormResponder(container, token) {
       container.innerHTML = `
         <div class="rfp-success-page">
           <div class="rfp-success-hero" style="background: ${themeColor}">
-            <div class="rfp-brand-badge">✦ Ephemeral Forms</div>
+            <div class="rfp-brand-badge"><svg viewBox="0 0 32 32" width="14" height="14" style="vertical-align:-2px;margin-right:4px;"><rect width="32" height="32" rx="8" fill="#6c5ce7"/><text x="16" y="23" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="white">ef</text></svg> Ephemeral Forms</div>
             <div class="rfp-success-wave">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 60" preserveAspectRatio="none">
                 <path d="M0,60 L0,30 Q360,0 720,30 Q1080,60 1440,20 L1440,60 Z" fill="var(--bg-primary)"/>
@@ -123,7 +123,7 @@ export async function renderSharedFormResponder(container, token) {
         <div class="rfp-hero" style="background: ${themeColor}">
           <div class="rfp-hero-inner" style="position:relative;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <div class="rfp-brand-badge">✦ Ephemeral Forms</div>
+              <div class="rfp-brand-badge"><svg viewBox="0 0 32 32" width="14" height="14" style="vertical-align:-2px;margin-right:4px;"><rect width="32" height="32" rx="8" fill="#6c5ce7"/><text x="16" y="23" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="white">ef</text></svg> Ephemeral Forms</div>
               <a href="#/manage/${formId}" class="rfp-manage-link" title="Manage this form">Manage</a>
             </div>
             <div class="rfp-hero-content">

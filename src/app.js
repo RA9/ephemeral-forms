@@ -1,4 +1,4 @@
-import { createIcons, LayoutDashboard, PlusCircle, Puzzle, Sun, Moon, FormInput, Menu, BookOpen, Globe } from 'lucide';
+import { createIcons, LayoutDashboard, PlusCircle, Puzzle, Sun, Moon, Menu, BookOpen, Globe } from 'lucide';
 import { navigateTo, getCurrentPath } from './router.js';
 
 export function renderAppShell(container) {
@@ -15,7 +15,10 @@ export function renderAppShell(container) {
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
           <div class="sidebar-logo-icon">
-            <i data-lucide="form-input" style="width: 20px; height: 20px;"></i>
+            <svg viewBox="0 0 32 32" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="32" height="32" rx="8" fill="#6c5ce7"/>
+              <text x="16" y="23" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="white">ef</text>
+            </svg>
           </div>
           <span class="sidebar-logo">Ephemeral Forms</span>
         </div>
@@ -73,7 +76,6 @@ export function renderAppShell(container) {
       Puzzle,
       Sun,
       Moon,
-      FormInput,
       Menu,
       BookOpen,
       Globe

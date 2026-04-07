@@ -10,36 +10,30 @@ export function getDB() {
   if (!dbPromise) {
     dbPromise = openDB(DB_NAME, DB_VERSION, {
       upgrade(db) {
-        // Forms store
         if (!db.objectStoreNames.contains('forms')) {
           const formStore = db.createObjectStore('forms', { keyPath: 'id' });
           formStore.createIndex('createdAt', 'createdAt');
           formStore.createIndex('updatedAt', 'updatedAt');
         }
 
-        // Responses store
         if (!db.objectStoreNames.contains('responses')) {
           const responseStore = db.createObjectStore('responses', { keyPath: 'id' });
           responseStore.createIndex('formId', 'formId');
           responseStore.createIndex('submittedAt', 'submittedAt');
         }
 
-        // Plugins store
         if (!db.objectStoreNames.contains('plugins')) {
           db.createObjectStore('plugins', { keyPath: 'id' });
         }
 
-        // Settings store
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings', { keyPath: 'key' });
         }
 
-        // Share metadata store (v2)
         if (!db.objectStoreNames.contains('share_meta')) {
           db.createObjectStore('share_meta', { keyPath: 'formId' });
         }
 
-        // Creator metadata store (v3)
         if (!db.objectStoreNames.contains('creator_meta')) {
           db.createObjectStore('creator_meta', { keyPath: 'key' });
         }

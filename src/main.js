@@ -36,9 +36,10 @@ const appElement = document.getElementById('app');
 
 // Initialize App
 async function init() {
-  // Load custom plugins
-  try {
-    const customPlugins = await getCustomPlugins();
+  const contentArea = renderAppShell(appElement);
+
+  // Load custom plugins (non-blocking — don't hold up routing)
+  getCustomPlugins().then(customPlugins => {
     customPlugins.forEach(p => {
       try {
         const script = document.createElement('script');
@@ -48,11 +49,9 @@ async function init() {
         console.error('Failed to execute custom plugin', p.id, err);
       }
     });
-  } catch(err) {
+  }).catch(err => {
     console.error('Failed to load custom plugins from DB', err);
-  }
-
-  const contentArea = renderAppShell(appElement);
+  });
 
   // Define Routes
   registerRoute('/', () => {

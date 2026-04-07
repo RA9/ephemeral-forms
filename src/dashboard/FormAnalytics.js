@@ -15,6 +15,11 @@ Chart.register(...registerables);
 // Analytics Helpers
 // ============================================================
 
+function getCSSColor(varName, fallback) {
+  const val = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  return val || fallback;
+}
+
 function computeOverviewStats(responses, questions) {
   const total = responses.length;
   if (total === 0) return { total: 0, today: 0, avgPerDay: 0, completionRate: 0, peakDay: 'N/A', peakCount: 0 };
@@ -319,6 +324,12 @@ export async function renderFormAnalytics(container, formId) {
 
     const { labels, data } = computeTimeline(responses);
 
+    const surfaceColor = getCSSColor('--surface', '#fff');
+    const textPrimary = getCSSColor('--text-primary', '#1a1e2e');
+    const textSecondary = getCSSColor('--text-secondary', '#5c6478');
+    const textTertiary = getCSSColor('--text-tertiary', '#a0a8be');
+    const borderLight = getCSSColor('--border-light', '#e2e6ef');
+
     new Chart(canvas, {
       type: 'line',
       data: {
@@ -339,14 +350,15 @@ export async function renderFormAnalytics(container, formId) {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: true,
         animation: { duration: 600 },
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'var(--surface, #fff)',
-            titleColor: 'var(--text-primary, #1a1e2e)',
-            bodyColor: 'var(--text-secondary, #5c6478)',
-            borderColor: 'var(--border-light, #e2e6ef)',
+            backgroundColor: surfaceColor,
+            titleColor: textPrimary,
+            bodyColor: textSecondary,
+            borderColor: borderLight,
             borderWidth: 1,
             cornerRadius: 8,
             padding: 10,
@@ -358,12 +370,12 @@ export async function renderFormAnalytics(container, formId) {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { font: { size: 10 }, color: 'var(--text-tertiary, #a0a8be)' },
+            ticks: { font: { size: 10 }, color: textTertiary, maxRotation: 45 },
           },
           y: {
             beginAtZero: true,
-            ticks: { stepSize: 1, font: { size: 10 }, color: 'var(--text-tertiary, #a0a8be)' },
-            grid: { color: 'var(--border-light, #e2e6ef)' },
+            ticks: { stepSize: 1, font: { size: 10 }, color: textTertiary },
+            grid: { color: borderLight },
           },
         },
       },
@@ -392,6 +404,7 @@ export async function renderFormAnalytics(container, formId) {
           },
           options: {
             responsive: true,
+            maintainAspectRatio: true,
             cutout: '60%',
             plugins: {
               legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } },
