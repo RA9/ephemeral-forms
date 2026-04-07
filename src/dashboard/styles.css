@@ -103,6 +103,7 @@
   margin-bottom: var(--space-4);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -200,6 +201,210 @@
   font-size: var(--font-xs);
   color: var(--text-tertiary);
   padding: var(--space-2);
+}
+
+/* ===== ENHANCED ANALYTICS ===== */
+
+/* Overview Stats Strip */
+.ana-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.ana-stat-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ana-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ana-stat-value {
+  font-size: var(--font-2xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.ana-stat-label {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Response Timeline */
+.ana-timeline {
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.ana-timeline-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.ana-section-title {
+  font-size: var(--font-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.ana-section-subtitle {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+.ana-timeline-chart {
+  margin-bottom: var(--space-3);
+}
+
+.ana-timeline-footer {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-light);
+}
+
+/* Per-Question Card Enhancements */
+.ana-q-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.ana-q-meta {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.ana-q-pill {
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.ana-q-pill-rate {
+  background: rgba(0, 184, 148, 0.1);
+  color: var(--accent-600);
+}
+
+.ana-q-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Scale Stats Grid */
+.ana-scale-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
+.ana-scale-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  text-align: center;
+}
+
+.ana-scale-num {
+  font-size: var(--font-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.ana-scale-lbl {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: var(--font-weight-medium);
+}
+
+/* Text Question Insights */
+.ana-text-insights {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ana-text-meta {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+.ana-word-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.ana-word-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: var(--primary-50);
+  color: var(--primary-700);
+  border-radius: var(--radius-full);
+  font-size: var(--font-xs);
+  font-weight: var(--font-weight-medium);
+}
+[data-theme="dark"] .ana-word-tag {
+  background: rgba(108, 92, 231, 0.12);
+  color: var(--primary-300);
+}
+.ana-word-tag small {
+  font-size: 9px;
+  opacity: 0.6;
+  font-weight: var(--font-weight-normal);
+}
+
+@media (max-width: 768px) {
+  .ana-overview {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ana-scale-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ana-q-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .ana-overview {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Responses Table */

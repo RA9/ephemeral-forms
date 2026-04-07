@@ -75,7 +75,7 @@ export async function showConfirm(title, message) {
     body: `<p style="color:var(--text-secondary);font-size:var(--font-sm)">${message}</p>`,
     actions: [
       { id: 'cancel', label: 'Cancel', class: 'btn-secondary' },
-      { id: 'confirm', label: 'Confirm', class: 'btn-danger' },
+      { id: 'confirm', label: 'Confirm', class: 'btn-primary' },
     ],
   });
   return result === 'confirm';
