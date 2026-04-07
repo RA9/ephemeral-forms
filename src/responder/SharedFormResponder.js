@@ -1,5 +1,6 @@
 // Shared Form Responder — renders a form fetched from Firestore via magic link
 import { getSharedForm, submitSharedResponse } from '../firebase/shareService.js';
+import { loadRemotePlugins } from '../firebase/creatorService.js';
 import { getQuestionType } from '../builder/questionTypes.js';
 import { showToast, escapeHtml, shuffleArray } from '../utils.js';
 import { createIcons, ChevronLeft, ArrowRight, CheckCircle, Search, AlertTriangle } from 'lucide';
@@ -24,7 +25,14 @@ export async function renderSharedFormResponder(container, token) {
     return;
   }
 
-  const { form, expiresAt, formId } = result;
+  const { form, expiresAt, formId, pluginIds } = result;
+
+  // Load remote custom plugins before rendering
+  if (pluginIds && pluginIds.length > 0) {
+    try { await loadRemotePlugins(pluginIds); } catch (err) {
+      console.warn('Failed to load remote plugins:', err);
+    }
+  }
 
   // From here, reuse the same logic as FormResponder but submit to Firestore
   let questions = [...form.questions];

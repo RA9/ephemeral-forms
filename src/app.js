@@ -1,4 +1,4 @@
-import { createIcons, LayoutDashboard, PlusCircle, Puzzle, Sun, Moon, FormInput, Menu, BookOpen } from 'lucide';
+import { createIcons, LayoutDashboard, PlusCircle, Puzzle, Sun, Moon, FormInput, Menu, BookOpen, Globe } from 'lucide';
 import { navigateTo, getCurrentPath } from './router.js';
 
 export function renderAppShell(container) {
@@ -31,6 +31,12 @@ export function renderAppShell(container) {
             <span>Create Form</span>
           </button>
           
+          <div class="sidebar-section-title">Online</div>
+          <button class="nav-item" data-nav="/workspace" id="nav-workspace">
+            <span class="nav-item-icon"><i data-lucide="globe"></i></span>
+            <span>Workspace</span>
+          </button>
+
           <div class="sidebar-section-title">Extensions</div>
           <button class="nav-item" data-nav="/plugins" id="nav-plugins">
             <span class="nav-item-icon"><i data-lucide="puzzle"></i></span>
@@ -69,7 +75,8 @@ export function renderAppShell(container) {
       Moon,
       FormInput,
       Menu,
-      BookOpen
+      BookOpen,
+      Globe
     }
   });
 

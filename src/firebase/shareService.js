@@ -149,21 +149,25 @@ export async function redeemInviteCode(code, displayName, passphrase) {
 // SHARE A FORM (creator sets passphrase, becomes owner)
 // ============================================================
 
-export async function shareForm(form, ownerName, passphrase) {
+export async function shareForm(form, ownerName, passphrase, creatorId = null) {
   const { salt: masterSalt, hash: masterHash } = await hashPassphrase(passphrase);
   const token = nanoid(16);
   const now = new Date().toISOString();
   const expires = expiresAt();
 
   // Store the form
-  await setDoc(doc(db, SHARED_FORMS, form.id), {
+  const formDoc = {
     formJson: JSON.stringify(form),
     masterSalt,
     masterHash,
     ownerName,
+    pluginIds: [],
     createdAt: now,
     updatedAt: now,
-  });
+  };
+  if (creatorId) formDoc.creatorId = creatorId;
+
+  await setDoc(doc(db, SHARED_FORMS, form.id), formDoc);
 
   // Create owner as first collaborator
   await addCollaborator(form.id, ownerName, passphrase, 'owner');
@@ -197,8 +201,10 @@ export async function getSharedForm(token) {
   const formSnap = await getDoc(doc(db, SHARED_FORMS, link.formId));
   if (!formSnap.exists()) return { error: 'not_found' };
 
-  const form = JSON.parse(formSnap.data().formJson);
-  return { form, expiresAt: link.expiresAt, token, formId: link.formId };
+  const formData = formSnap.data();
+  const form = JSON.parse(formData.formJson);
+  const pluginIds = formData.pluginIds || [];
+  return { form, expiresAt: link.expiresAt, token, formId: link.formId, pluginIds };
 }
 
 // ============================================================

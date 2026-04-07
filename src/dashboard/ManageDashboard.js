@@ -8,14 +8,34 @@ import {
   changePassphrase, removeCollaborator
 } from '../firebase/shareService.js';
 import { getManageSession, setManageSession, clearManageSession, saveShareMeta } from '../storage/shareStore.js';
+import { getWorkspaceSession } from '../storage/creatorStore.js';
 import { getQuestionType } from '../builder/questionTypes.js';
 import { showToast, showModal, formatDate, escapeHtml, escapeAttr, truncate, formatAnswer, generateColors } from '../utils.js';
+import { db as firestoreDb } from '../firebase/config.js';
+import { doc, getDoc } from 'firebase/firestore';
 
 Chart.register(...registerables);
 
 export async function renderManageDashboard(container, formId) {
-  // Check existing session
+  // 1. Check per-form session
   let session = getManageSession(formId);
+
+  // 2. If no per-form session, check workspace session
+  if (!session) {
+    const ws = getWorkspaceSession();
+    if (ws) {
+      // Verify this form belongs to the workspace creator
+      try {
+        const formSnap = await getDoc(doc(firestoreDb, 'shared_forms', formId));
+        if (formSnap.exists() && formSnap.data().creatorId === ws.creatorId) {
+          session = { id: ws.creatorId, displayName: ws.displayName, role: 'owner' };
+          setManageSession(formId, session);
+        }
+      } catch {
+        // Fall through to passphrase gate
+      }
+    }
+  }
 
   if (!session) {
     renderPassphraseGate(container, formId);

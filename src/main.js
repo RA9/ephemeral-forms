@@ -16,6 +16,7 @@ import { renderFormResponder } from './responder/FormResponder.js';
 import { renderSharedFormResponder } from './responder/SharedFormResponder.js';
 import { renderFormAnalytics } from './dashboard/FormAnalytics.js';
 import { renderManageDashboard } from './dashboard/ManageDashboard.js';
+import { renderWorkspaceDashboard } from './dashboard/WorkspaceDashboard.js';
 import { renderPluginManager } from './plugins/PluginManager.js';
 import { renderDocs } from './docs/Docs.js';
 import { getCustomPlugins } from './storage/pluginStore.js';
@@ -65,6 +66,12 @@ async function init() {
     const shell = document.querySelector('.app-shell');
     if (shell) shell.classList.remove('responder-mode');
     return renderDashboard(contentArea);
+  });
+
+  registerRoute('/workspace', () => {
+    const shell = document.querySelector('.app-shell');
+    if (shell) shell.classList.remove('responder-mode');
+    return renderWorkspaceDashboard(contentArea);
   });
 
   registerRoute('/build', () => {

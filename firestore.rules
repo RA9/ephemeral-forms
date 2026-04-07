@@ -2,16 +2,23 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Shared forms — anyone can read + create, updates must preserve the passphrase hash
-    match /shared_forms/{formId} {
+    // Creators — global creator identity
+    match /creators/{creatorId} {
       allow read: if true;
       allow create: if true;
-      allow update: if request.resource.data.passphraseHash == resource.data.passphraseHash
-                    || request.resource.data.masterHash == resource.data.masterHash;
+      allow update: if true;
       allow delete: if false;
     }
 
-    // Magic links — anyone can read/create, update for revocation
+    // Shared forms
+    match /shared_forms/{formId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // Magic links
     match /magic_links/{token} {
       allow read: if true;
       allow create: if true;
@@ -19,14 +26,14 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Shared responses — anyone can create (respondent submits), anyone can read (authed in app layer)
+    // Shared responses
     match /shared_responses/{responseId} {
       allow read: if true;
       allow create: if true;
       allow update, delete: if false;
     }
 
-    // Collaborators — anyone can read/create, update for removal/passphrase change
+    // Collaborators
     match /collaborators/{collabId} {
       allow read: if true;
       allow create: if true;
@@ -34,7 +41,7 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Invite codes — anyone can read/create/update (redeem marks as used)
+    // Invite codes
     match /invite_codes/{code} {
       allow read: if true;
       allow create: if true;
@@ -42,11 +49,19 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Audit logs — anyone can read/create, no updates or deletes
+    // Audit logs
     match /audit_logs/{logId} {
       allow read: if true;
       allow create: if true;
       allow update, delete: if false;
+    }
+
+    // Shared plugins
+    match /shared_plugins/{pluginId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
     }
   }
 }
