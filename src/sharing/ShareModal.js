@@ -18,7 +18,11 @@ function buildShareURL(token) {
   return `${window.location.origin}${window.location.pathname}#/share/${token}`;
 }
 
-function modalBody(status, url) {
+function buildManageURL(creatorSecret) {
+  return `${window.location.origin}${window.location.pathname}#/manage/${creatorSecret}`;
+}
+
+function modalBody(status, url, creatorSecret) {
   if (!status || !status.active) {
     return `
       <div class="share-modal-content">
@@ -32,20 +36,38 @@ function modalBody(status, url) {
     `;
   }
 
+  const manageUrl = buildManageURL(creatorSecret);
+
   return `
     <div class="share-modal-content">
-      <p style="color:var(--text-secondary);font-size:var(--font-sm);margin-bottom:var(--space-4);">
-        Share this link with anyone — no login needed to fill out the form.
-      </p>
-      <div class="share-link-box" style="display:flex;gap:var(--space-2);margin-bottom:var(--space-4);">
-        <input type="text" class="input" id="share-link-input" value="${url}" readonly
-               style="flex:1;font-size:var(--font-xs);background:var(--bg-tertiary);cursor:text;" />
-        <button class="btn btn-primary btn-sm" data-action="copy" style="white-space:nowrap;">Copy</button>
+      <div style="margin-bottom:var(--space-5);">
+        <div style="font-size:var(--font-xs);font-weight:600;color:var(--text-secondary);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.04em;">Respondent Link</div>
+        <p style="color:var(--text-tertiary);font-size:var(--font-xs);margin-bottom:var(--space-2);">Share this with anyone — no login needed to fill out the form.</p>
+        <div style="display:flex;gap:var(--space-2);">
+          <input type="text" class="input" value="${url}" readonly
+                 style="flex:1;font-size:var(--font-xs);background:var(--bg-tertiary);cursor:text;" />
+          <button class="btn btn-primary btn-sm" data-action="copy" style="white-space:nowrap;">Copy</button>
+        </div>
+        <div style="margin-top:var(--space-2);">
+          <span style="font-size:var(--font-xs);color:var(--text-tertiary);background:var(--bg-tertiary);padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);display:inline-block;">
+            ⏳ ${formatTTL(status.expiresAt)}
+          </span>
+        </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span class="share-ttl-badge" style="font-size:var(--font-xs);color:var(--text-tertiary);background:var(--bg-tertiary);padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);">
-          ⏳ ${formatTTL(status.expiresAt)}
-        </span>
+
+      <div style="border-top:1px solid var(--border-light);padding-top:var(--space-4);">
+        <div style="font-size:var(--font-xs);font-weight:600;color:var(--text-secondary);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.04em;">Creator Link</div>
+        <p style="color:var(--text-tertiary);font-size:var(--font-xs);margin-bottom:var(--space-2);">
+          Open this from any device to view responses and analytics. Keep this link private!
+        </p>
+        <div style="display:flex;gap:var(--space-2);">
+          <input type="text" class="input" value="${manageUrl}" readonly
+                 style="flex:1;font-size:var(--font-xs);background:var(--bg-tertiary);cursor:text;" />
+          <button class="btn btn-secondary btn-sm" data-action="copy-manage" style="white-space:nowrap;">Copy</button>
+        </div>
+        <p style="font-size:10px;color:var(--warning);margin-top:var(--space-2);">
+          ⚠ This link grants access to all responses. Do not share it publicly.
+        </p>
       </div>
     </div>
   `;
@@ -55,11 +77,12 @@ export async function showShareModal(form) {
   const meta = await getShareMeta(form.id);
   let status = null;
   let url = '';
+  let creatorSecret = meta?.creatorSecret || '';
 
   // Check existing link status
-  if (meta?.creatorSecret) {
+  if (creatorSecret) {
     try {
-      status = await getLinkStatus(form.id, meta.creatorSecret);
+      status = await getLinkStatus(form.id, creatorSecret);
       if (status?.active) {
         url = buildShareURL(status.token);
       }
@@ -82,23 +105,35 @@ export async function showShareModal(form) {
 
   const result = await showModal({
     title: 'Share Form Online',
-    body: modalBody(status, url),
+    body: modalBody(status, url, creatorSecret),
     actions,
   });
 
   if (result === 'copy') {
     try {
       await navigator.clipboard.writeText(url);
-      showToast('Link copied!', 'success');
+      showToast('Respondent link copied!', 'success');
     } catch {
       showToast(url, 'info', 8000);
     }
-    return showShareModal(form); // Re-open modal
+    return showShareModal(form);
+  }
+
+  if (result === 'copy-manage') {
+    const manageUrl = buildManageURL(creatorSecret);
+    try {
+      await navigator.clipboard.writeText(manageUrl);
+      showToast('Creator link copied! Save this to access responses from any device.', 'success');
+    } catch {
+      showToast(manageUrl, 'info', 8000);
+    }
+    return showShareModal(form);
   }
 
   if (result === 'generate') {
     try {
       const res = await shareForm(form);
+      creatorSecret = res.creatorSecret;
       await saveShareMeta(form.id, {
         creatorSecret: res.creatorSecret,
         token: res.token,
@@ -106,7 +141,7 @@ export async function showShareModal(form) {
         sharedAt: new Date().toISOString(),
       });
       showToast('Magic link created!', 'success');
-      return showShareModal(form); // Re-open to show the link
+      return showShareModal(form);
     } catch (err) {
       showToast('Failed to share form: ' + err.message, 'error');
     }
@@ -114,17 +149,16 @@ export async function showShareModal(form) {
 
   if (result === 'regenerate') {
     try {
-      const res = await regenerateLink(form.id, meta.creatorSecret);
-      // Also re-sync the form in case it was edited
-      await resyncSharedForm(form.id, meta.creatorSecret, form);
+      const res = await regenerateLink(form.id, creatorSecret);
+      await resyncSharedForm(form.id, creatorSecret, form);
       await saveShareMeta(form.id, {
-        creatorSecret: meta.creatorSecret,
+        creatorSecret,
         token: res.token,
         expiresAt: res.expiresAt,
         sharedAt: new Date().toISOString(),
       });
       showToast('New link generated!', 'success');
-      return showShareModal(form); // Re-open to show new link
+      return showShareModal(form);
     } catch (err) {
       showToast('Failed to regenerate: ' + err.message, 'error');
     }

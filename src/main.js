@@ -15,6 +15,7 @@ import { renderFormBuilder } from './builder/FormBuilder.js';
 import { renderFormResponder } from './responder/FormResponder.js';
 import { renderSharedFormResponder } from './responder/SharedFormResponder.js';
 import { renderFormAnalytics } from './dashboard/FormAnalytics.js';
+import { renderManageDashboard } from './dashboard/ManageDashboard.js';
 import { renderPluginManager } from './plugins/PluginManager.js';
 import { renderDocs } from './docs/Docs.js';
 import { getCustomPlugins } from './storage/pluginStore.js';
@@ -87,6 +88,11 @@ async function init() {
     const shell = document.querySelector('.app-shell');
     if (shell) shell.classList.add('responder-mode');
     return renderSharedFormResponder(contentArea, params.token);
+  });
+  registerRoute('/manage/:secret', (params) => {
+    const shell = document.querySelector('.app-shell');
+    if (shell) shell.classList.remove('responder-mode');
+    return renderManageDashboard(contentArea, params.secret);
   });
   registerRoute('/form/:id/responses', (params) => renderFormAnalytics(contentArea, params.id));
   registerRoute('/plugins', () => {

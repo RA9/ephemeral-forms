@@ -203,3 +203,56 @@ export async function getLinkStatus(formId, creatorSecret) {
 
   return { active: false };
 }
+
+// ============================================================
+// Look up form + responses by creatorSecret (for cross-device access)
+// ============================================================
+
+export async function getFormByCreatorSecret(creatorSecret) {
+  const q = query(
+    collection(db, SHARED_FORMS),
+    where('creatorSecret', '==', creatorSecret)
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+
+  const formDoc = snap.docs[0];
+  const data = formDoc.data();
+  const form = JSON.parse(data.formJson);
+  const formId = formDoc.id;
+
+  // Fetch responses
+  const rq = query(
+    collection(db, SHARED_RESPONSES),
+    where('formId', '==', formId),
+    orderBy('submittedAt', 'desc')
+  );
+  const rSnap = await getDocs(rq);
+  const responses = rSnap.docs.map(d => {
+    const rd = d.data();
+    return {
+      id: d.id,
+      formId: rd.formId,
+      answers: JSON.parse(rd.answersJson),
+      submittedAt: rd.submittedAt,
+      source: 'remote',
+    };
+  });
+
+  // Get active link status
+  const lq = query(
+    collection(db, MAGIC_LINKS),
+    where('formId', '==', formId)
+  );
+  const lSnap = await getDocs(lq);
+  let activeLink = null;
+  for (const ld of lSnap.docs) {
+    const lData = ld.data();
+    if (!lData.isRevoked && new Date(lData.expiresAt) > new Date()) {
+      activeLink = { token: ld.id, expiresAt: lData.expiresAt };
+      break;
+    }
+  }
+
+  return { form, formId, responses, activeLink, creatorSecret };
+}
