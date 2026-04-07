@@ -24,7 +24,7 @@ export async function renderSharedFormResponder(container, token) {
     return;
   }
 
-  const { form, expiresAt } = result;
+  const { form, expiresAt, formId } = result;
 
   // From here, reuse the same logic as FormResponder but submit to Firestore
   let questions = [...form.questions];
@@ -113,8 +113,11 @@ export async function renderSharedFormResponder(container, token) {
     container.innerHTML = `
       <div class="rfp">
         <div class="rfp-hero" style="background: ${themeColor}">
-          <div class="rfp-hero-inner">
-            <div class="rfp-brand-badge">✦ Ephemeral Forms</div>
+          <div class="rfp-hero-inner" style="position:relative;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="rfp-brand-badge">✦ Ephemeral Forms</div>
+              <a href="#/manage/${formId}" class="rfp-manage-link" title="Manage this form">Manage</a>
+            </div>
             <div class="rfp-hero-content">
               <h1 class="rfp-hero-title">${escapeHtml(isFirstPage ? form.title : (pageTitle || form.title))}</h1>
               ${(isFirstPage && form.description) ? `<p class="rfp-hero-desc">${escapeHtml(form.description)}</p>` : ''}

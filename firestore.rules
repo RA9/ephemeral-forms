@@ -2,17 +2,16 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Shared forms — anyone can read (needed for respondents),
-    // anyone can create (no login), only creator can update
+    // Shared forms — anyone can read + create, updates must preserve the passphrase hash
     match /shared_forms/{formId} {
       allow read: if true;
       allow create: if true;
-      allow update: if request.resource.data.creatorSecret == resource.data.creatorSecret;
+      allow update: if request.resource.data.passphraseHash == resource.data.passphraseHash
+                    || request.resource.data.masterHash == resource.data.masterHash;
       allow delete: if false;
     }
 
-    // Magic links — anyone can read (respondent needs to validate token),
-    // anyone can create, only creator can update (revoke)
+    // Magic links — anyone can read/create, update for revocation
     match /magic_links/{token} {
       allow read: if true;
       allow create: if true;
@@ -20,9 +19,31 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Shared responses — anyone can create (respondent submits),
-    // reads filtered by creator secret in the app layer
+    // Shared responses — anyone can create (respondent submits), anyone can read (authed in app layer)
     match /shared_responses/{responseId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
+    // Collaborators — anyone can read/create, update for removal/passphrase change
+    match /collaborators/{collabId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // Invite codes — anyone can read/create/update (redeem marks as used)
+    match /invite_codes/{code} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // Audit logs — anyone can read/create, no updates or deletes
+    match /audit_logs/{logId} {
       allow read: if true;
       allow create: if true;
       allow update, delete: if false;

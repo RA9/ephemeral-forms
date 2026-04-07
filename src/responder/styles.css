@@ -697,5 +697,23 @@
   }
 }
 
+/* ---- Manage Link on shared forms ---- */
+.rfp-manage-link {
+  font-size: var(--font-xs);
+  font-weight: var(--font-weight-semibold);
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(4px);
+  transition: all var(--transition-fast);
+}
+.rfp-manage-link:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.5);
+}
+
 /* ---- Legacy class aliases (for plugin compat) ---- */
 .responder-confirmation { display: none; }

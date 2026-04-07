@@ -1,14 +1,17 @@
-// Firestore service for magic link sharing
+// Firestore service for magic link sharing with passphrase auth + collaborators + audit
 import { db } from './config.js';
 import {
-  collection, doc, getDoc, setDoc, updateDoc, addDoc,
-  query, where, getDocs, orderBy, Timestamp, deleteDoc
+  collection, doc, getDoc, setDoc, updateDoc,
+  query, where, getDocs, orderBy, addDoc, limit
 } from 'firebase/firestore';
 import { nanoid } from 'nanoid';
+import { hashPassphrase, verifyPassphrase } from '../utils/crypto.js';
 
 const SHARED_FORMS = 'shared_forms';
 const MAGIC_LINKS = 'magic_links';
 const SHARED_RESPONSES = 'shared_responses';
+const COLLABORATORS = 'collaborators';
+const AUDIT_LOGS = 'audit_logs';
 
 const TTL_DAYS = 3;
 
@@ -19,22 +22,151 @@ function expiresAt() {
 }
 
 // ============================================================
-// Share a form — creates shared_form + magic_link, returns metadata
+// AUDIT LOGGING
 // ============================================================
 
-export async function shareForm(form) {
+export async function addAuditLog(formId, actor, action, metadata = {}) {
+  await addDoc(collection(db, AUDIT_LOGS), {
+    formId,
+    actor,
+    action,
+    metadata: JSON.stringify(metadata),
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export async function getAuditLogs(formId, maxResults = 50) {
+  const q = query(
+    collection(db, AUDIT_LOGS),
+    where('formId', '==', formId),
+    orderBy('timestamp', 'desc'),
+    limit(maxResults)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => {
+    const data = d.data();
+    return {
+      id: d.id,
+      ...data,
+      metadata: data.metadata ? JSON.parse(data.metadata) : {},
+    };
+  });
+}
+
+// ============================================================
+// COLLABORATORS
+// ============================================================
+
+export async function addCollaborator(formId, displayName, passphrase, role = 'editor') {
+  const { salt, hash } = await hashPassphrase(passphrase);
+  const colRef = await addDoc(collection(db, COLLABORATORS), {
+    formId,
+    displayName,
+    salt,
+    hash,
+    role,
+    createdAt: new Date().toISOString(),
+  });
+  return { id: colRef.id, displayName, role };
+}
+
+export async function getCollaborators(formId) {
+  const q = query(collection(db, COLLABORATORS), where('formId', '==', formId));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({
+    id: d.id,
+    displayName: d.data().displayName,
+    role: d.data().role,
+    createdAt: d.data().createdAt,
+  }));
+}
+
+export async function removeCollaborator(collaboratorId) {
+  const ref = doc(db, COLLABORATORS, collaboratorId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error('Collaborator not found');
+  // Soft-delete by updating role to 'removed'
+  await updateDoc(ref, { role: 'removed' });
+}
+
+/**
+ * Verify a passphrase against all collaborators for a form.
+ * Returns the matching collaborator { id, displayName, role } or null.
+ */
+export async function verifyCollaborator(formId, passphrase) {
+  const q = query(collection(db, COLLABORATORS), where('formId', '==', formId));
+  const snap = await getDocs(q);
+
+  for (const d of snap.docs) {
+    const data = d.data();
+    if (data.role === 'removed') continue;
+    const valid = await verifyPassphrase(passphrase, data.salt, data.hash);
+    if (valid) {
+      return { id: d.id, displayName: data.displayName, role: data.role };
+    }
+  }
+  return null;
+}
+
+// ============================================================
+// INVITE CODES (for adding collaborators)
+// ============================================================
+
+export async function createInviteCode(formId, role = 'editor') {
+  const code = nanoid(8).toUpperCase();
+  await setDoc(doc(db, 'invite_codes', code), {
+    formId,
+    role,
+    used: false,
+    createdAt: new Date().toISOString(),
+    expiresAt: expiresAt(), // same 3-day TTL
+  });
+  return code;
+}
+
+export async function redeemInviteCode(code, displayName, passphrase) {
+  const ref = doc(db, 'invite_codes', code);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return { error: 'Invalid invite code' };
+
+  const data = snap.data();
+  if (data.used) return { error: 'This invite code has already been used' };
+  if (new Date(data.expiresAt) < new Date()) return { error: 'Invite code expired' };
+
+  // Add as collaborator
+  const collab = await addCollaborator(data.formId, displayName, passphrase, data.role);
+
+  // Mark code as used
+  await updateDoc(ref, { used: true, usedBy: displayName });
+
+  // Audit
+  await addAuditLog(data.formId, displayName, 'joined_via_invite', { role: data.role });
+
+  return { collaborator: collab, formId: data.formId };
+}
+
+// ============================================================
+// SHARE A FORM (creator sets passphrase, becomes owner)
+// ============================================================
+
+export async function shareForm(form, ownerName, passphrase) {
+  const { salt: masterSalt, hash: masterHash } = await hashPassphrase(passphrase);
   const token = nanoid(16);
-  const creatorSecret = nanoid(24);
   const now = new Date().toISOString();
   const expires = expiresAt();
 
-  // Store the full form
+  // Store the form
   await setDoc(doc(db, SHARED_FORMS, form.id), {
     formJson: JSON.stringify(form),
-    creatorSecret,
+    masterSalt,
+    masterHash,
+    ownerName,
     createdAt: now,
     updatedAt: now,
   });
+
+  // Create owner as first collaborator
+  await addCollaborator(form.id, ownerName, passphrase, 'owner');
 
   // Create magic link
   await setDoc(doc(db, MAGIC_LINKS, token), {
@@ -44,11 +176,14 @@ export async function shareForm(form) {
     isRevoked: false,
   });
 
-  return { token, expiresAt: expires, creatorSecret };
+  // Audit
+  await addAuditLog(form.id, ownerName, 'shared_form', { token });
+
+  return { token, expiresAt: expires };
 }
 
 // ============================================================
-// Get form by magic link token (respondent side)
+// GET FORM BY TOKEN (respondent side)
 // ============================================================
 
 export async function getSharedForm(token) {
@@ -63,15 +198,14 @@ export async function getSharedForm(token) {
   if (!formSnap.exists()) return { error: 'not_found' };
 
   const form = JSON.parse(formSnap.data().formJson);
-  return { form, expiresAt: link.expiresAt, token };
+  return { form, expiresAt: link.expiresAt, token, formId: link.formId };
 }
 
 // ============================================================
-// Submit a response to a shared form (respondent side)
+// SUBMIT RESPONSE (respondent side)
 // ============================================================
 
 export async function submitSharedResponse(token, answers) {
-  // Validate link is still active
   const linkSnap = await getDoc(doc(db, MAGIC_LINKS, token));
   if (!linkSnap.exists()) throw new Error('Link not found');
 
@@ -91,17 +225,10 @@ export async function submitSharedResponse(token, answers) {
 }
 
 // ============================================================
-// Get remote responses (creator side — requires creatorSecret)
+// GET REMOTE RESPONSES (authenticated collaborator)
 // ============================================================
 
-export async function getRemoteResponses(formId, creatorSecret) {
-  // Verify ownership
-  const formSnap = await getDoc(doc(db, SHARED_FORMS, formId));
-  if (!formSnap.exists()) return [];
-  if (formSnap.data().creatorSecret !== creatorSecret) {
-    throw new Error('Unauthorized');
-  }
-
+export async function getRemoteResponses(formId) {
   const q = query(
     collection(db, SHARED_RESPONSES),
     where('formId', '==', formId),
@@ -121,31 +248,17 @@ export async function getRemoteResponses(formId, creatorSecret) {
 }
 
 // ============================================================
-// Regenerate magic link (creator side — revokes old, creates new)
+// REGENERATE MAGIC LINK
 // ============================================================
 
-export async function regenerateLink(formId, creatorSecret) {
-  // Verify ownership
-  const formSnap = await getDoc(doc(db, SHARED_FORMS, formId));
-  if (!formSnap.exists()) throw new Error('Form not found');
-  if (formSnap.data().creatorSecret !== creatorSecret) {
-    throw new Error('Unauthorized');
-  }
-
-  // Revoke existing links
-  const q = query(
-    collection(db, MAGIC_LINKS),
-    where('formId', '==', formId)
-  );
-  const existingLinks = await getDocs(q);
-  for (const linkDoc of existingLinks.docs) {
+export async function regenerateLink(formId, actor) {
+  // Revoke old links
+  const q = query(collection(db, MAGIC_LINKS), where('formId', '==', formId));
+  const existing = await getDocs(q);
+  for (const linkDoc of existing.docs) {
     await updateDoc(linkDoc.ref, { isRevoked: true });
   }
 
-  // Also update the form JSON in case creator edited it
-  const currentForm = await getDoc(doc(db, SHARED_FORMS, formId));
-
-  // Create new link
   const token = nanoid(16);
   const expires = expiresAt();
   await setDoc(doc(db, MAGIC_LINKS, token), {
@@ -155,20 +268,15 @@ export async function regenerateLink(formId, creatorSecret) {
     isRevoked: false,
   });
 
+  await addAuditLog(formId, actor, 'regenerated_link', { token });
   return { token, expiresAt: expires };
 }
 
 // ============================================================
-// Re-sync form JSON after edits (creator side)
+// RE-SYNC FORM JSON
 // ============================================================
 
-export async function resyncSharedForm(formId, creatorSecret, form) {
-  const formSnap = await getDoc(doc(db, SHARED_FORMS, formId));
-  if (!formSnap.exists()) throw new Error('Form not found');
-  if (formSnap.data().creatorSecret !== creatorSecret) {
-    throw new Error('Unauthorized');
-  }
-
+export async function resyncSharedForm(formId, form) {
   await updateDoc(doc(db, SHARED_FORMS, formId), {
     formJson: JSON.stringify(form),
     updatedAt: new Date().toISOString(),
@@ -176,83 +284,52 @@ export async function resyncSharedForm(formId, creatorSecret, form) {
 }
 
 // ============================================================
-// Get link status (creator side)
+// LINK STATUS
 // ============================================================
 
-export async function getLinkStatus(formId, creatorSecret) {
-  const formSnap = await getDoc(doc(db, SHARED_FORMS, formId));
-  if (!formSnap.exists()) return null;
-  if (formSnap.data().creatorSecret !== creatorSecret) return null;
-
-  const q = query(
-    collection(db, MAGIC_LINKS),
-    where('formId', '==', formId)
-  );
+export async function getLinkStatus(formId) {
+  const q = query(collection(db, MAGIC_LINKS), where('formId', '==', formId));
   const snap = await getDocs(q);
 
   for (const linkDoc of snap.docs) {
     const data = linkDoc.data();
     if (!data.isRevoked && new Date(data.expiresAt) > new Date()) {
-      return {
-        token: linkDoc.id,
-        expiresAt: data.expiresAt,
-        active: true,
-      };
+      return { token: linkDoc.id, expiresAt: data.expiresAt, active: true };
     }
   }
-
   return { active: false };
 }
 
 // ============================================================
-// Look up form + responses by creatorSecret (for cross-device access)
+// CHANGE PASSPHRASE (for a collaborator — owner can change master)
 // ============================================================
 
-export async function getFormByCreatorSecret(creatorSecret) {
-  const q = query(
-    collection(db, SHARED_FORMS),
-    where('creatorSecret', '==', creatorSecret)
-  );
-  const snap = await getDocs(q);
-  if (snap.empty) return null;
+export async function changePassphrase(collaboratorId, newPassphrase, actor) {
+  const ref = doc(db, COLLABORATORS, collaboratorId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error('Collaborator not found');
 
-  const formDoc = snap.docs[0];
-  const data = formDoc.data();
-  const form = JSON.parse(data.formJson);
-  const formId = formDoc.id;
+  const { salt, hash } = await hashPassphrase(newPassphrase);
+  await updateDoc(ref, { salt, hash });
 
-  // Fetch responses
-  const rq = query(
-    collection(db, SHARED_RESPONSES),
-    where('formId', '==', formId),
-    orderBy('submittedAt', 'desc')
-  );
-  const rSnap = await getDocs(rq);
-  const responses = rSnap.docs.map(d => {
-    const rd = d.data();
-    return {
-      id: d.id,
-      formId: rd.formId,
-      answers: JSON.parse(rd.answersJson),
-      submittedAt: rd.submittedAt,
-      source: 'remote',
-    };
-  });
+  const data = snap.data();
+  await addAuditLog(data.formId, actor, 'changed_passphrase');
+}
 
-  // Get active link status
-  const lq = query(
-    collection(db, MAGIC_LINKS),
-    where('formId', '==', formId)
-  );
-  const lSnap = await getDocs(lq);
-  let activeLink = null;
-  for (const ld of lSnap.docs) {
-    const lData = ld.data();
-    if (!lData.isRevoked && new Date(lData.expiresAt) > new Date()) {
-      activeLink = { token: ld.id, expiresAt: lData.expiresAt };
-      break;
-    }
-  }
+// ============================================================
+// GET SHARED FORM METADATA (for manage dashboard)
+// ============================================================
 
-  return { form, formId, responses, activeLink, creatorSecret };
+export async function getSharedFormData(formId) {
+  const formSnap = await getDoc(doc(db, SHARED_FORMS, formId));
+  if (!formSnap.exists()) return null;
+
+  const formData = formSnap.data();
+  const form = JSON.parse(formData.formJson);
+  const responses = await getRemoteResponses(formId);
+  const linkStatus = await getLinkStatus(formId);
+  const collaborators = await getCollaborators(formId);
+  const auditLogs = await getAuditLogs(formId);
+
+  return { form, formId, responses, linkStatus, collaborators, auditLogs };
 }

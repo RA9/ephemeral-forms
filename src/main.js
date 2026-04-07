@@ -89,10 +89,10 @@ async function init() {
     if (shell) shell.classList.add('responder-mode');
     return renderSharedFormResponder(contentArea, params.token);
   });
-  registerRoute('/manage/:secret', (params) => {
+  registerRoute('/manage/:formId', (params) => {
     const shell = document.querySelector('.app-shell');
     if (shell) shell.classList.remove('responder-mode');
-    return renderManageDashboard(contentArea, params.secret);
+    return renderManageDashboard(contentArea, params.formId);
   });
   registerRoute('/form/:id/responses', (params) => renderFormAnalytics(contentArea, params.id));
   registerRoute('/plugins', () => {

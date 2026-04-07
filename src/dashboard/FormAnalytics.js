@@ -26,8 +26,8 @@ export async function renderFormAnalytics(container, formId) {
   let remoteResponses = [];
   try {
     const meta = await getShareMeta(formId);
-    if (meta?.creatorSecret) {
-      remoteResponses = await getRemoteResponses(formId, meta.creatorSecret);
+    if (meta?.shared) {
+      remoteResponses = await getRemoteResponses(formId);
     }
   } catch {
     // Remote fetch failed — show local only
