@@ -17,7 +17,7 @@ export function renderAppShell(container) {
           <div class="sidebar-logo-icon">
             <i data-lucide="form-input" style="width: 20px; height: 20px;"></i>
           </div>
-          <span class="sidebar-logo">Ephemeral</span>
+          <span class="sidebar-logo">Ephemeral Forms</span>
         </div>
         
         <nav class="sidebar-nav">

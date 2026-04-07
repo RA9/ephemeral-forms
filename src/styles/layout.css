@@ -34,10 +34,7 @@
   gap: var(--space-3);
   font-size: var(--font-lg);
   font-weight: var(--font-weight-extrabold);
-  background: linear-gradient(135deg, var(--primary-500), var(--accent-500));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
 }
 
 .sidebar-logo-icon {
