@@ -184,10 +184,7 @@
 }
 
 .lp-gradient-text {
-  background: linear-gradient(135deg, var(--primary-500) 0%, var(--accent-500) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary-500);
 }
 
 .lp-hero-sub {
@@ -484,10 +481,7 @@
   font-size: var(--font-3xl);
   font-weight: var(--font-weight-extrabold);
   letter-spacing: -0.03em;
-  background: linear-gradient(135deg, var(--primary-500), var(--accent-500));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .lp-stat-label {
@@ -507,7 +501,7 @@
 
 /* ===== FEATURES ===== */
 .lp-features {
-  padding: var(--space-20) var(--space-8);
+  padding: var(--space-24) var(--space-10);
   max-width: 1120px;
   margin: 0 auto;
   width: 100%;
@@ -550,7 +544,7 @@
 }
 
 .lp-feature-card {
-  padding: var(--space-7) var(--space-6);
+  padding: var(--space-8) var(--space-6);
   background: var(--surface);
   border: 1.5px solid var(--border-light);
   border-radius: var(--radius-xl);
@@ -663,16 +657,8 @@
 .lp-cta-banner-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 50%, var(--accent-600) 100%);
+  background: var(--primary-500);
   z-index: 0;
-}
-.lp-cta-banner-bg::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 60% 80% at 10% 50%, rgba(255,255,255,0.1), transparent),
-    radial-gradient(ellipse 40% 60% at 90% 20%, rgba(255,255,255,0.08), transparent);
 }
 
 .lp-cta-banner-inner {

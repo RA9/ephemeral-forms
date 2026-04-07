@@ -209,12 +209,28 @@ export async function renderFormBuilder(container, formId) {
         </div>
       `;
     }
-
     if (q.type === 'section_header') {
+      const allSections = questions.filter(o => o.type === 'section_header');
+      const currentIndex = allSections.findIndex(o => o.id === q.id);
+      
+      let sectionOptions = `<option value="">Continue to next section</option>`;
+      allSections.forEach((sec, idx) => {
+        if (sec.id !== q.id) {
+          sectionOptions += `<option value="${sec.id}" ${q.goToSection === sec.id ? 'selected' : ''}>Go to section ${idx + 1} (${escapeHtml(sec.sectionTitle || 'Untitled')})</option>`;
+        }
+      });
+      sectionOptions += `<option value="submit" ${q.goToSection === 'submit' ? 'selected' : ''}>Submit form</option>`;
+
       return `
         <div class="section-editor" data-id="${q.id}">
-          <input type="text" class="input" data-id="${q.id}" data-field="sectionTitle" value="${escapeHtml(q.sectionTitle || '')}" placeholder="Section Title" />
-          <textarea class="textarea" data-id="${q.id}" data-field="sectionDesc" rows="2" placeholder="Section description">${escapeHtml(q.sectionDesc || '')}</textarea>
+          <input type="text" class="input" style="margin-bottom: var(--space-3);" data-id="${q.id}" data-field="sectionTitle" value="${escapeHtml(q.sectionTitle || '')}" placeholder="Section Title" />
+          <textarea class="textarea" style="margin-bottom: var(--space-3);" data-id="${q.id}" data-field="sectionDesc" rows="2" placeholder="Section description">${escapeHtml(q.sectionDesc || '')}</textarea>
+          <div class="section-logic-editor">
+            <label style="font-size: var(--font-sm); color: var(--text-secondary); margin-bottom: var(--space-2); display: block;">After this section</label>
+            <select class="select scale-select" data-id="${q.id}" data-field="goToSection">
+              ${sectionOptions}
+            </select>
+          </div>
         </div>
       `;
     }

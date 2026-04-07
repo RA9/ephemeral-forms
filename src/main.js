@@ -24,6 +24,7 @@ import './plugins/builtins/signaturePlugin.js';
 import './plugins/builtins/conditionalLogicPlugin.js';
 import './plugins/builtins/stepperPlugin.js';
 import './plugins/builtins/mathJaxPlugin.js';
+import './plugins/builtins/formStepperPlugin.js';
 
 import './landing/styles.css';
 import { renderLandingPage } from './landing/Landing.js';
