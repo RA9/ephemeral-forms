@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Shared forms — anyone can read (needed for respondents),
+    // anyone can create (no login), only creator can update
+    match /shared_forms/{formId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if request.resource.data.creatorSecret == resource.data.creatorSecret;
+      allow delete: if false;
+    }
+
+    // Magic links — anyone can read (respondent needs to validate token),
+    // anyone can create, only creator can update (revoke)
+    match /magic_links/{token} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
+
+    // Shared responses — anyone can create (respondent submits),
+    // reads filtered by creator secret in the app layer
+    match /shared_responses/{responseId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+  }
+}

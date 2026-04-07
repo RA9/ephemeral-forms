@@ -13,6 +13,7 @@ import { renderAppShell } from './app.js';
 import { renderDashboard } from './dashboard/Dashboard.js';
 import { renderFormBuilder } from './builder/FormBuilder.js';
 import { renderFormResponder } from './responder/FormResponder.js';
+import { renderSharedFormResponder } from './responder/SharedFormResponder.js';
 import { renderFormAnalytics } from './dashboard/FormAnalytics.js';
 import { renderPluginManager } from './plugins/PluginManager.js';
 import { renderDocs } from './docs/Docs.js';
@@ -82,6 +83,11 @@ async function init() {
     if (shell) shell.classList.add('responder-mode');
     return renderFormResponder(contentArea, params.id);
   });
+  registerRoute('/share/:token', (params) => {
+    const shell = document.querySelector('.app-shell');
+    if (shell) shell.classList.add('responder-mode');
+    return renderSharedFormResponder(contentArea, params.token);
+  });
   registerRoute('/form/:id/responses', (params) => renderFormAnalytics(contentArea, params.id));
   registerRoute('/plugins', () => {
     const shell = document.querySelector('.app-shell');
@@ -102,7 +108,8 @@ async function init() {
 window.addEventListener('hashchange', () => {
   const shell = document.querySelector('.app-shell');
   if (shell) {
-    if (window.location.hash.startsWith('#/form/') && !window.location.hash.endsWith('/responses')) {
+    const hash = window.location.hash;
+    if ((hash.startsWith('#/form/') && !hash.endsWith('/responses')) || hash.startsWith('#/share/')) {
       shell.classList.add('responder-mode');
     } else {
       shell.classList.remove('responder-mode');

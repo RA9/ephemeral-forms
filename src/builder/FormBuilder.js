@@ -4,6 +4,7 @@ import { createQuestion, getAllQuestionTypes, getQuestionType } from './question
 import { createForm, getForm, updateForm } from '../storage/formStore.js';
 import { showToast, deepClone, escapeHtml } from '../utils.js';
 import { navigateTo } from '../router.js';
+import { showShareModal } from '../sharing/ShareModal.js';
 
 export async function renderFormBuilder(container, formId) {
   let form;
@@ -450,13 +451,7 @@ export async function renderFormBuilder(container, formId) {
 
     container.querySelector('#share-form')?.addEventListener('click', async () => {
       await saveForm();
-      const url = `${window.location.origin}${window.location.pathname}#/form/${formId}`;
-      try {
-        await navigator.clipboard.writeText(url);
-        showToast('Link copied to clipboard!', 'success');
-      } catch {
-        showToast(url, 'info', 8000);
-      }
+      await showShareModal(form);
     });
 
     container.querySelector('#save-form')?.addEventListener('click', saveForm);

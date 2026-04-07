@@ -1,9 +1,10 @@
 import { Chart, registerables } from 'chart.js';
 import { createIcons, FileText, BarChart3, TrendingUp, Plus, Search, Edit2, Share2, Copy, Trash2 } from 'lucide';
-import { listForms, deleteForm, duplicateForm } from '../storage/formStore.js';
+import { listForms, deleteForm, duplicateForm, getForm } from '../storage/formStore.js';
 import { getResponseCount, getResponseStats } from '../storage/responseStore.js';
 import { showToast, showConfirm, formatDate, formatNumber, escapeHtml, escapeAttr } from '../utils.js';
 import { navigateTo } from '../router.js';
+import { showShareModal } from '../sharing/ShareModal.js';
 
 Chart.register(...registerables);
 
@@ -138,12 +139,11 @@ export async function renderDashboard(container) {
         showToast('Form duplicated!', 'success');
         renderDashboard(container);
       } else if (action === 'share') {
-        const url = `${window.location.origin}${window.location.pathname}#/form/${formId}`;
-        try {
-          await navigator.clipboard.writeText(url);
-          showToast('Link copied!', 'success');
-        } catch {
-          showToast(url, 'info', 8000);
+        const fullForm = await getForm(formId);
+        if (fullForm) {
+          await showShareModal(fullForm);
+        } else {
+          showToast('Form not found', 'error');
         }
       } else if (action === 'delete') {
         const confirmed = await showConfirm('Delete Form', 'This will permanently delete this form and all its responses. This cannot be undone.');

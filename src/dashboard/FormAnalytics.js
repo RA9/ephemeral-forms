@@ -5,6 +5,9 @@ import { getResponses, deleteAllResponses, deleteResponse } from '../storage/res
 import { getQuestionType } from '../builder/questionTypes.js';
 import { showToast, showConfirm, formatDate, escapeHtml, escapeAttr, truncate, formatAnswer, generateColors } from '../utils.js';
 import { navigateTo } from '../router.js';
+import { showShareModal } from '../sharing/ShareModal.js';
+import { getRemoteResponses } from '../firebase/shareService.js';
+import { getShareMeta } from '../storage/shareStore.js';
 
 Chart.register(...registerables);
 
@@ -16,7 +19,31 @@ export async function renderFormAnalytics(container, formId) {
     return;
   }
 
-  const responses = await getResponses(formId);
+  // Load local responses
+  const localResponses = (await getResponses(formId)).map(r => ({ ...r, source: 'local' }));
+
+  // Merge remote responses if form has been shared
+  let remoteResponses = [];
+  try {
+    const meta = await getShareMeta(formId);
+    if (meta?.creatorSecret) {
+      remoteResponses = await getRemoteResponses(formId, meta.creatorSecret);
+    }
+  } catch {
+    // Remote fetch failed — show local only
+  }
+
+  // Deduplicate by id, prefer remote source
+  const seenIds = new Set();
+  const responses = [];
+  for (const r of [...remoteResponses, ...localResponses]) {
+    if (!seenIds.has(r.id)) {
+      seenIds.add(r.id);
+      responses.push(r);
+    }
+  }
+  responses.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
   const themeColor = form.settings?.themeColor || '#6c5ce7';
   let activeTab = 'summary';
 
@@ -248,22 +275,10 @@ export async function renderFormAnalytics(container, formId) {
     container.querySelector('#edit-form-btn')?.addEventListener('click', () => navigateTo(`/build/${formId}`));
     
     container.querySelector('#share-form-btn')?.addEventListener('click', async () => {
-      const url = `${window.location.origin}${window.location.pathname}#/form/${formId}`;
-      try {
-        await navigator.clipboard.writeText(url);
-        showToast('Link copied!', 'success');
-      } catch {
-        showToast(url, 'info', 8000);
-      }
+      await showShareModal(form);
     });
     container.querySelector('#share-empty')?.addEventListener('click', async () => {
-      const url = `${window.location.origin}${window.location.pathname}#/form/${formId}`;
-      try {
-        await navigator.clipboard.writeText(url);
-        showToast('Link copied!', 'success');
-      } catch {
-        showToast(url, 'info', 8000);
-      }
+      await showShareModal(form);
     });
 
     // Export

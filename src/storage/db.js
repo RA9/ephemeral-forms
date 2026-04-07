@@ -2,7 +2,7 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'ephemeral-forms';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise = null;
 
@@ -32,6 +32,11 @@ export function getDB() {
         // Settings store
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings', { keyPath: 'key' });
+        }
+
+        // Share metadata store (v2)
+        if (!db.objectStoreNames.contains('share_meta')) {
+          db.createObjectStore('share_meta', { keyPath: 'formId' });
         }
       },
     });
