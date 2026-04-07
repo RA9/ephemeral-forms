@@ -311,7 +311,7 @@ registerQuestionType('file_upload', {
 });
 
 registerQuestionType('section_header', {
-  label: 'Section',
+  label: 'Step',
   icon: 'layout',
   category: 'layout',
   getDefault: () => ({ sectionTitle: 'Section Title', sectionDesc: '' }),

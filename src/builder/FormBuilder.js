@@ -1,5 +1,5 @@
 import Sortable from 'sortablejs';
-import { createIcons, Save, Eye, Share2, Plus, GripVertical, Trash2, Settings, ChevronDown, Type, AlignLeft, CheckSquare, List, Circle, ArrowUpCircle, Calendar, Clock, Upload, Layout, Edit2, Copy, X, Square, ChevronRight, FileText, Sigma, Hash } from 'lucide';
+import { createIcons, Save, Eye, Share2, Plus, GripVertical, Trash2, Settings, ChevronDown, Type, AlignLeft, CheckSquare, List, Circle, ArrowUpCircle, Calendar, Clock, Upload, Layout, Edit2, Copy, X, Square, ChevronRight, FileText, Sigma, Hash, ArrowRight, CornerDownRight } from 'lucide';
 import { createQuestion, getAllQuestionTypes, getQuestionType } from './questionTypes.js';
 import { createForm, getForm, updateForm } from '../storage/formStore.js';
 import { showToast, deepClone, escapeHtml } from '../utils.js';
@@ -7,7 +7,6 @@ import { navigateTo } from '../router.js';
 
 export async function renderFormBuilder(container, formId) {
   let form;
-  let isNew = !formId;
 
   if (formId) {
     form = await getForm(formId);
@@ -26,6 +25,61 @@ export async function renderFormBuilder(container, formId) {
   let selectedQuestionId = null;
   let previewMode = false;
 
+  // ============================================================
+  // Helpers
+  // ============================================================
+
+  // Group flat questions list into steps (section_header = step boundary).
+  // Questions before the first section_header go into a "default" group.
+  const groupBySteps = () => {
+    const groups = [];
+    let current = { header: null, questions: [] };
+    questions.forEach(q => {
+      if (q.type === 'section_header') {
+        groups.push(current);
+        current = { header: q, questions: [] };
+      } else {
+        current.questions.push(q);
+      }
+    });
+    groups.push(current);
+    return groups.filter(g => g.header !== null || g.questions.length > 0);
+  };
+
+  // Rebuild the flat questions array from the current DOM order after a drag.
+  const reconstructFromDOM = () => {
+    const newOrder = [];
+    container.querySelectorAll('.step-group').forEach(group => {
+      const headerId = group.dataset.headerId;
+      if (headerId !== '__default__') {
+        const headerQ = questions.find(q => q.id === headerId);
+        if (headerQ) newOrder.push(headerQ);
+      }
+      group.querySelectorAll(':scope > .step-body > .question-card').forEach(card => {
+        const q = questions.find(q => q.id === card.dataset.id);
+        if (q) newOrder.push(q);
+      });
+    });
+    questions.length = 0;
+    questions.push(...newOrder);
+  };
+
+  // Non-section question types for the inline picker
+  const fieldTypes = () => getAllQuestionTypes().filter(qt => qt.type !== 'section_header');
+
+  // All step headers for routing dropdowns
+  const allStepHeaders = () => questions.filter(q => q.type === 'section_header');
+
+  // Human step index (1-based) for a given header id
+  const stepIndex = (headerId) => {
+    const all = allStepHeaders();
+    return all.findIndex(q => q.id === headerId) + 1;
+  };
+
+  // ============================================================
+  // Render
+  // ============================================================
+
   const render = () => {
     container.innerHTML = `
       <div class="builder-layout">
@@ -34,9 +88,9 @@ export async function renderFormBuilder(container, formId) {
             <div class="builder-header-left">
               <button class="btn btn-ghost" id="builder-back" data-tooltip="Back to Dashboard">← Back</button>
               <div class="builder-title-area">
-                <input type="text" class="builder-title-input" id="form-title" 
+                <input type="text" class="builder-title-input" id="form-title"
                   value="${escapeHtml(form.title)}" placeholder="Untitled Form" />
-                <input type="text" class="builder-desc-input" id="form-desc" 
+                <input type="text" class="builder-desc-input" id="form-desc"
                   value="${escapeHtml(form.description)}" placeholder="Form description (optional)" />
               </div>
             </div>
@@ -60,9 +114,9 @@ export async function renderFormBuilder(container, formId) {
         ${!previewMode ? `
         <div class="builder-sidebar">
           <div class="builder-sidebar-section">
-            <h4 class="builder-sidebar-title">Add Question</h4>
+            <h4 class="builder-sidebar-title">Add Field</h4>
             <div class="question-type-grid" id="question-type-grid">
-              ${getAllQuestionTypes().map(qt => `
+              ${fieldTypes().map(qt => `
                 <button class="question-type-btn" data-type="${qt.type}" data-tooltip="${qt.label}">
                   <span class="question-type-icon"><i data-lucide="${qt.icon}"></i></span>
                   <span class="question-type-label">${qt.label}</span>
@@ -99,16 +153,19 @@ export async function renderFormBuilder(container, formId) {
       initSortable();
     }
 
-    // Re-initialize Lucide icons after every render
     createIcons({
       icons: {
         Save, Eye, Share2, Plus, GripVertical, Trash2, Settings, ChevronDown,
         Type, AlignLeft, CheckSquare, List, Circle, ArrowUpCircle, Calendar,
         Clock, Upload, Layout, Edit2, Copy, X, Square, ChevronRight, FileText,
-        Sigma, Hash
+        Sigma, Hash, ArrowRight, CornerDownRight
       }
     });
   };
+
+  // ============================================================
+  // Editor
+  // ============================================================
 
   const renderEditor = () => {
     if (questions.length === 0) {
@@ -117,18 +174,124 @@ export async function renderFormBuilder(container, formId) {
           <div class="empty-state">
             <div class="empty-state-icon"><i data-lucide="file-text" style="width: 48px; height: 48px;"></i></div>
             <div class="empty-state-title">No questions yet</div>
-            <div class="empty-state-text">Click a question type from the sidebar to add your first question.</div>
+            <div class="empty-state-text">Add a <strong>Step</strong> to create a multi-page form, or add fields directly for a single-page form.</div>
+          </div>
+          <div class="step-global-actions">
+            <button class="step-add-step-btn" id="add-first-step">
+              <i data-lucide="plus" style="width:16px;height:16px;"></i>
+              Add First Step
+            </button>
           </div>
         </div>
       `;
     }
 
+    const groups = groupBySteps();
+    const themeColor = form.settings.themeColor || '#6c5ce7';
+
     return `
-      <div class="builder-questions" id="questions-list">
-        ${questions.map((q, idx) => renderQuestionCard(q, idx)).join('')}
+      <div class="builder-questions">
+        <div id="steps-list">
+          ${groups.map(group => renderStepGroup(group, themeColor)).join('')}
+        </div>
+        <div class="step-global-actions">
+          <button class="step-add-step-btn" id="add-step-btn">
+            <i data-lucide="plus" style="width:16px;height:16px;"></i>
+            Add Step
+          </button>
+        </div>
       </div>
     `;
   };
+
+  // ---- Step Group ----
+
+  const renderStepGroup = (group, themeColor) => {
+    const headerId = group.header?.id || '__default__';
+    const hasHeader = !!group.header;
+    const sIdx = hasHeader ? stepIndex(headerId) : 0;
+    const allHeaders = allStepHeaders();
+
+    // Build routing options
+    let routingHtml = '';
+    if (hasHeader) {
+      let opts = `<option value="">Continue to next step</option>`;
+      allHeaders.forEach((sec, idx) => {
+        if (sec.id !== headerId) {
+          opts += `<option value="${sec.id}" ${group.header.goToSection === sec.id ? 'selected' : ''}>Go to Step ${idx + 1}${sec.sectionTitle ? ` — ${escapeHtml(sec.sectionTitle)}` : ''}</option>`;
+        }
+      });
+      opts += `<option value="submit" ${group.header.goToSection === 'submit' ? 'selected' : ''}>Submit form</option>`;
+
+      routingHtml = `
+        <div class="step-routing">
+          <div class="step-routing-label">
+            <i data-lucide="corner-down-right" style="width:14px;height:14px;"></i>
+            After this step
+          </div>
+          <select class="select step-routing-select" data-id="${headerId}" data-field="goToSection">
+            ${opts}
+          </select>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="step-group ${hasHeader ? 'step-group-has-header' : ''}" data-header-id="${headerId}"
+           style="--step-color: ${themeColor};">
+
+        ${hasHeader ? `
+          <div class="step-header">
+            <div class="step-header-drag" title="Drag to reorder step"><i data-lucide="grip-vertical"></i></div>
+            <div class="step-header-badge" style="background: ${themeColor}">Step ${sIdx}</div>
+            <div class="step-header-fields">
+              <input type="text" class="step-title-input" data-id="${headerId}" data-field="sectionTitle"
+                     value="${escapeHtml(group.header.sectionTitle || '')}" placeholder="Step title (e.g. Personal Info)" />
+              <input type="text" class="step-desc-input" data-id="${headerId}" data-field="sectionDesc"
+                     value="${escapeHtml(group.header.sectionDesc || '')}" placeholder="Description (optional)" />
+            </div>
+            <div class="step-header-actions">
+              <button class="btn-icon btn-sm" data-action="duplicate" data-id="${headerId}" title="Duplicate step"><i data-lucide="copy"></i></button>
+              <button class="btn-icon btn-sm" data-action="delete" data-id="${headerId}" title="Delete step"><i data-lucide="trash-2"></i></button>
+            </div>
+          </div>
+        ` : `
+          <div class="step-header step-header-default">
+            <div class="step-header-badge step-header-badge-muted">Ungrouped Fields</div>
+            <span class="step-header-hint">These fields appear before any step. Add a Step above to group them.</span>
+          </div>
+        `}
+
+        <div class="step-body" id="step-body-${headerId}">
+          ${group.questions.map(q => renderQuestionCard(q, questions.indexOf(q))).join('')}
+          ${group.questions.length === 0 && hasHeader ? `
+            <div class="step-empty-drop">
+              <i data-lucide="plus" style="width:16px;height:16px;opacity:0.4;"></i>
+              <span>Drag fields here or use the button below</span>
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="step-footer">
+          <button class="step-add-field-btn" data-section="${headerId}">
+            <i data-lucide="plus" style="width:14px;height:14px;"></i>
+            Add field${hasHeader ? ' to this step' : ''}
+          </button>
+          <div class="step-field-picker" id="picker-${headerId}" hidden>
+            ${fieldTypes().map(qt => `
+              <button class="step-field-type" data-type="${qt.type}" data-section="${headerId}" title="${qt.label}">
+                <i data-lucide="${qt.icon}" style="width:14px;height:14px;"></i>
+                <span>${qt.label}</span>
+              </button>
+            `).join('')}
+          </div>
+          ${routingHtml}
+        </div>
+      </div>
+    `;
+  };
+
+  // ---- Question Card (unchanged structure) ----
 
   const renderQuestionCard = (q, idx) => {
     const isSelected = selectedQuestionId === q.id;
@@ -146,13 +309,13 @@ export async function renderFormBuilder(container, formId) {
           </div>
         </div>
         <div class="question-card-body">
-          <input type="text" class="question-label-input" data-id="${q.id}" 
+          <input type="text" class="question-label-input" data-id="${q.id}"
             value="${escapeHtml(q.label)}" placeholder="Question text" />
-          <input type="text" class="question-help-input" data-id="${q.id}" 
+          <input type="text" class="question-help-input" data-id="${q.id}"
             value="${escapeHtml(q.helpText || '')}" placeholder="Help text (optional)" />
-          
+
           ${renderQuestionOptions(q)}
-          
+
           <div class="question-card-footer">
             <label class="toggle-inline">
               <span>Required</span>
@@ -166,6 +329,8 @@ export async function renderFormBuilder(container, formId) {
       </div>
     `;
   };
+
+  // ---- Per-type option editors ----
 
   const renderQuestionOptions = (q) => {
     if (q.type === 'multiple_choice' || q.type === 'checkboxes' || q.type === 'dropdown') {
@@ -209,37 +374,14 @@ export async function renderFormBuilder(container, formId) {
         </div>
       `;
     }
-    if (q.type === 'section_header') {
-      const allSections = questions.filter(o => o.type === 'section_header');
-      const currentIndex = allSections.findIndex(o => o.id === q.id);
-      
-      let sectionOptions = `<option value="">Continue to next section</option>`;
-      allSections.forEach((sec, idx) => {
-        if (sec.id !== q.id) {
-          sectionOptions += `<option value="${sec.id}" ${q.goToSection === sec.id ? 'selected' : ''}>Go to section ${idx + 1} (${escapeHtml(sec.sectionTitle || 'Untitled')})</option>`;
-        }
-      });
-      sectionOptions += `<option value="submit" ${q.goToSection === 'submit' ? 'selected' : ''}>Submit form</option>`;
 
-      return `
-        <div class="section-editor" data-id="${q.id}">
-          <input type="text" class="input" style="margin-bottom: var(--space-3);" data-id="${q.id}" data-field="sectionTitle" value="${escapeHtml(q.sectionTitle || '')}" placeholder="Section Title" />
-          <textarea class="textarea" style="margin-bottom: var(--space-3);" data-id="${q.id}" data-field="sectionDesc" rows="2" placeholder="Section description">${escapeHtml(q.sectionDesc || '')}</textarea>
-          <div class="section-logic-editor">
-            <label style="font-size: var(--font-sm); color: var(--text-secondary); margin-bottom: var(--space-2); display: block;">After this section</label>
-            <select class="select scale-select" data-id="${q.id}" data-field="goToSection">
-              ${sectionOptions}
-            </select>
-          </div>
-        </div>
-      `;
-    }
-
+    // section_header options are now handled in the step header/footer, not here
     return '';
   };
 
+  // ---- Preview ----
+
   const renderPreview = () => {
-    // Simple preview without full responder logic if needed, or just use the same render logic
     return `
       <div class="preview-container">
         <div class="preview-banner">
@@ -254,12 +396,10 @@ export async function renderFormBuilder(container, formId) {
             ${questions.map(q => {
               const qt = getQuestionType(q.type);
               if (!qt) return '';
-              const wrapper = document.createElement('div');
-              const rendered = qt.render(q, null, () => {});
               return `
                 <div class="preview-question">
                   <label class="preview-question-label">
-                    ${escapeHtml(q.label || 'Untitled Question')}
+                    ${escapeHtml(q.label || q.sectionTitle || 'Untitled Question')}
                     ${q.required ? '<span class="required-mark">*</span>' : ''}
                   </label>
                   ${q.helpText ? `<p class="preview-help-text">${escapeHtml(q.helpText)}</p>` : ''}
@@ -274,11 +414,14 @@ export async function renderFormBuilder(container, formId) {
     `;
   };
 
+  // ============================================================
+  // Events
+  // ============================================================
+
   const bindEvents = () => {
-    // Back button
+    // ---- Chrome ----
     container.querySelector('#builder-back')?.addEventListener('click', () => navigateTo('/'));
 
-    // Title & Description
     container.querySelector('#form-title')?.addEventListener('input', (e) => {
       form.title = e.target.value;
       autoSave();
@@ -288,12 +431,10 @@ export async function renderFormBuilder(container, formId) {
       autoSave();
     });
 
-    // Preview toggle
     container.querySelector('#toggle-preview')?.addEventListener('click', () => {
       syncFormData();
       previewMode = !previewMode;
       render();
-      // Re-render preview question inputs
       if (previewMode) {
         questions.forEach(q => {
           const qt = getQuestionType(q.type);
@@ -307,7 +448,6 @@ export async function renderFormBuilder(container, formId) {
       }
     });
 
-    // Share
     container.querySelector('#share-form')?.addEventListener('click', async () => {
       await saveForm();
       const url = `${window.location.origin}${window.location.pathname}#/form/${formId}`;
@@ -319,25 +459,101 @@ export async function renderFormBuilder(container, formId) {
       }
     });
 
-    // Save
     container.querySelector('#save-form')?.addEventListener('click', saveForm);
 
-    // Add question type buttons
+    // ---- Settings ----
+    container.querySelector('#theme-color')?.addEventListener('input', (e) => {
+      form.settings.themeColor = e.target.value;
+      autoSave();
+    });
+    container.querySelector('#confirm-msg')?.addEventListener('input', (e) => {
+      form.settings.confirmationMessage = e.target.value;
+      autoSave();
+    });
+    container.querySelector('#shuffle-toggle')?.addEventListener('change', (e) => {
+      form.settings.shuffleQuestions = e.target.checked;
+      autoSave();
+    });
+
+    // ---- Sidebar: add question at end ----
     container.querySelectorAll('.question-type-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const type = btn.dataset.type;
-        const newQ = createQuestion(type);
+        const newQ = createQuestion(btn.dataset.type);
         questions.push(newQ);
         selectedQuestionId = newQ.id;
         render();
-        // scroll to new question
-        const el = container.querySelector(`[data-id="${newQ.id}"]`);
-        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        container.querySelector(`[data-id="${newQ.id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         autoSave();
       });
     });
 
-    // Question card actions
+    // ---- Add Step buttons ----
+    container.querySelector('#add-first-step')?.addEventListener('click', addStep);
+    container.querySelector('#add-step-btn')?.addEventListener('click', addStep);
+
+    // ---- Step header inputs (title, desc) ----
+    container.querySelectorAll('.step-title-input, .step-desc-input').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const q = questions.find(q => q.id === e.target.dataset.id);
+        if (q) q[e.target.dataset.field] = e.target.value;
+        autoSave();
+      });
+    });
+
+    // ---- Step routing ----
+    container.querySelectorAll('.step-routing-select').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const q = questions.find(q => q.id === e.target.dataset.id);
+        if (q) q.goToSection = e.target.value || '';
+        autoSave();
+      });
+    });
+
+    // ---- Inline field picker (per step) ----
+    container.querySelectorAll('.step-add-field-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const picker = container.querySelector(`#picker-${btn.dataset.section}`);
+        if (!picker) return;
+        const isOpen = !picker.hidden;
+        container.querySelectorAll('.step-field-picker').forEach(p => { p.hidden = true; });
+        picker.hidden = isOpen;
+      });
+    });
+
+    container.querySelectorAll('.step-field-type').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const type = btn.dataset.type;
+        const sectionId = btn.dataset.section;
+        const newQ = createQuestion(type);
+
+        if (sectionId === '__default__') {
+          const firstHeaderIdx = questions.findIndex(q => q.type === 'section_header');
+          if (firstHeaderIdx === -1) questions.push(newQ);
+          else questions.splice(firstHeaderIdx, 0, newQ);
+        } else {
+          const headerIdx = questions.findIndex(q => q.id === sectionId);
+          let insertAt = headerIdx + 1;
+          while (insertAt < questions.length && questions[insertAt].type !== 'section_header') insertAt++;
+          questions.splice(insertAt, 0, newQ);
+        }
+
+        selectedQuestionId = newQ.id;
+        render();
+        container.querySelector(`[data-id="${newQ.id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        autoSave();
+      });
+    });
+
+    // Close pickers on outside click
+    container.addEventListener('click', (e) => {
+      if (!e.target.closest('.step-add-field-btn') && !e.target.closest('.step-field-picker')) {
+        container.querySelectorAll('.step-field-picker').forEach(p => { p.hidden = true; });
+      }
+    });
+
+    // ---- Question card: delete / duplicate ----
     container.querySelectorAll('[data-action="delete"]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -355,16 +571,21 @@ export async function renderFormBuilder(container, formId) {
         const id = btn.dataset.id;
         const srcIdx = questions.findIndex(q => q.id === id);
         if (srcIdx === -1) return;
-        const copy = createQuestion(questions[srcIdx].type);
-        Object.assign(copy, deepClone(questions[srcIdx]), { id: copy.id });
-        copy.label = copy.label + ' (Copy)';
+        const src = questions[srcIdx];
+        const copy = createQuestion(src.type);
+        Object.assign(copy, deepClone(src), { id: copy.id });
+        if (src.type === 'section_header') {
+          copy.sectionTitle = (copy.sectionTitle || 'Step') + ' (Copy)';
+        } else {
+          copy.label = (copy.label || '') + ' (Copy)';
+        }
         questions.splice(srcIdx + 1, 0, copy);
         render();
         autoSave();
       });
     });
 
-    // Question label / help text inputs
+    // ---- Question field inputs ----
     container.querySelectorAll('.question-label-input').forEach(input => {
       input.addEventListener('input', (e) => {
         const q = questions.find(q => q.id === e.target.dataset.id);
@@ -380,7 +601,6 @@ export async function renderFormBuilder(container, formId) {
       });
     });
 
-    // Required toggles
     container.querySelectorAll('.required-toggle').forEach(input => {
       input.addEventListener('change', (e) => {
         const q = questions.find(q => q.id === e.target.dataset.id);
@@ -389,7 +609,7 @@ export async function renderFormBuilder(container, formId) {
       });
     });
 
-    // Option inputs
+    // ---- Choice option editing ----
     container.querySelectorAll('.option-input').forEach(input => {
       input.addEventListener('input', (e) => {
         const q = questions.find(q => q.id === e.target.dataset.id);
@@ -399,9 +619,8 @@ export async function renderFormBuilder(container, formId) {
       });
     });
 
-    // Remove option
     container.querySelectorAll('.option-remove').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         const q = questions.find(q => q.id === btn.dataset.id);
         const idx = parseInt(btn.dataset.index);
         if (q && q.options && q.options.length > 1) {
@@ -412,7 +631,6 @@ export async function renderFormBuilder(container, formId) {
       });
     });
 
-    // Add option
     container.querySelectorAll('.add-option-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const q = questions.find(q => q.id === btn.dataset.id);
@@ -424,7 +642,7 @@ export async function renderFormBuilder(container, formId) {
       });
     });
 
-    // Scale selects
+    // ---- Scale selects ----
     container.querySelectorAll('.scale-select').forEach(sel => {
       sel.addEventListener('change', (e) => {
         const q = questions.find(q => q.id === e.target.dataset.id);
@@ -433,9 +651,10 @@ export async function renderFormBuilder(container, formId) {
       });
     });
 
-    // Scale labels and section fields
+    // ---- Generic data-field inputs (scale labels etc) ----
     container.querySelectorAll('[data-field]').forEach(el => {
-      if (el.classList.contains('scale-select')) return; // already handled
+      if (el.classList.contains('scale-select') || el.classList.contains('step-title-input') ||
+          el.classList.contains('step-desc-input') || el.classList.contains('step-routing-select')) return;
       el.addEventListener('input', (e) => {
         const q = questions.find(q => q.id === e.target.dataset.id);
         if (q) q[e.target.dataset.field] = e.target.value;
@@ -443,21 +662,7 @@ export async function renderFormBuilder(container, formId) {
       });
     });
 
-    // Settings
-    container.querySelector('#theme-color')?.addEventListener('input', (e) => {
-      form.settings.themeColor = e.target.value;
-      autoSave();
-    });
-    container.querySelector('#confirm-msg')?.addEventListener('input', (e) => {
-      form.settings.confirmationMessage = e.target.value;
-      autoSave();
-    });
-    container.querySelector('#shuffle-toggle')?.addEventListener('change', (e) => {
-      form.settings.shuffleQuestions = e.target.checked;
-      autoSave();
-    });
-
-    // Click on question card to select
+    // ---- Card selection ----
     container.querySelectorAll('.question-card').forEach(card => {
       card.addEventListener('click', () => {
         selectedQuestionId = card.dataset.id;
@@ -467,23 +672,51 @@ export async function renderFormBuilder(container, formId) {
     });
   };
 
-  const initSortable = () => {
-    const list = container.querySelector('#questions-list');
-    if (!list) return;
+  // ---- Add a new step ----
+  const addStep = () => {
+    const newStep = createQuestion('section_header');
+    const stepCount = allStepHeaders().length + 1;
+    newStep.sectionTitle = `Step ${stepCount}`;
+    questions.push(newStep);
+    selectedQuestionId = newStep.id;
+    render();
+    container.querySelector(`[data-header-id="${newStep.id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    autoSave();
+  };
 
-    Sortable.create(list, {
-      handle: '.drag-handle',
-      animation: 200,
-      ghostClass: 'sortable-ghost',
-      chosenClass: 'sortable-chosen',
-      onEnd: (evt) => {
-        const [moved] = questions.splice(evt.oldIndex, 1);
-        questions.splice(evt.newIndex, 0, moved);
-        render();
-        autoSave();
-      },
+  // ============================================================
+  // Sortable (drag & drop)
+  // ============================================================
+
+  const initSortable = () => {
+    // Outer: reorder entire step groups
+    const stepsList = container.querySelector('#steps-list');
+    if (stepsList) {
+      Sortable.create(stepsList, {
+        handle: '.step-header-drag',
+        animation: 200,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        onEnd: () => { reconstructFromDOM(); render(); autoSave(); },
+      });
+    }
+
+    // Inner: reorder questions within and across steps
+    container.querySelectorAll('.step-body').forEach(body => {
+      Sortable.create(body, {
+        group: 'questions',
+        handle: '.drag-handle',
+        animation: 200,
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        onEnd: () => { reconstructFromDOM(); render(); autoSave(); },
+      });
     });
   };
+
+  // ============================================================
+  // Persistence
+  // ============================================================
 
   let saveTimer = null;
   const autoSave = () => {
@@ -508,4 +741,3 @@ export async function renderFormBuilder(container, formId) {
 
   render();
 }
-

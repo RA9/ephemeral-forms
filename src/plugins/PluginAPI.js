@@ -10,6 +10,9 @@ const hooks = {
   onFormSave: [],
   onResponseView: [],
   onExport: [],
+  onRenderProgressBar: [],
+  onPageNext: [],
+  onPagePrev: [],
 };
 
 class PluginAPI {

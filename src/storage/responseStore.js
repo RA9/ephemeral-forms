@@ -46,10 +46,19 @@ export async function deleteAllResponses(formId) {
 export async function getResponseStats(formId) {
   const responses = await getResponses(formId);
   const total = responses.length;
-  if (total === 0) return { total: 0, latest: null, today: 0 };
-  
-  const today = new Date().toDateString();
-  const todayCount = responses.filter(r => 
+
+  const now = new Date();
+  const dailyCounts = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - (6 - i));
+    const ds = d.toDateString();
+    return responses.filter(r => new Date(r.submittedAt).toDateString() === ds).length;
+  });
+
+  if (total === 0) return { total: 0, latest: null, today: 0, dailyCounts };
+
+  const today = now.toDateString();
+  const todayCount = responses.filter(r =>
     new Date(r.submittedAt).toDateString() === today
   ).length;
 
@@ -57,5 +66,6 @@ export async function getResponseStats(formId) {
     total,
     latest: responses[0].submittedAt,
     today: todayCount,
+    dailyCounts,
   };
 }

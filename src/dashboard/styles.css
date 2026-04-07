@@ -113,6 +113,17 @@
   margin-bottom: var(--space-4);
 }
 
+.form-card-sparkline {
+  margin: var(--space-3) 0 var(--space-1);
+  height: 48px;
+  position: relative;
+}
+
+.form-card-sparkline canvas {
+  width: 100% !important;
+  height: 48px !important;
+}
+
 .form-card-footer {
   display: flex;
   align-items: center;

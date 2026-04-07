@@ -1,8 +1,11 @@
+import { Chart, registerables } from 'chart.js';
 import { createIcons, FileText, BarChart3, TrendingUp, Plus, Search, Edit2, Share2, Copy, Trash2 } from 'lucide';
 import { listForms, deleteForm, duplicateForm } from '../storage/formStore.js';
 import { getResponseCount, getResponseStats } from '../storage/responseStore.js';
 import { showToast, showConfirm, formatDate, formatNumber, escapeHtml, escapeAttr } from '../utils.js';
 import { navigateTo } from '../router.js';
+
+Chart.register(...registerables);
 
 export async function renderDashboard(container) {
   const forms = await listForms();
@@ -102,6 +105,8 @@ export async function renderDashboard(container) {
     }
   });
 
+  renderSparklines(container, formStats);
+
   // Bind events
   container.querySelector('#create-form-btn')?.addEventListener('click', () => navigateTo('/build'));
   container.querySelector('#create-form-empty')?.addEventListener('click', () => navigateTo('/build'));
@@ -159,6 +164,43 @@ export async function renderDashboard(container) {
   });
 }
 
+function renderSparklines(container, formStats) {
+  formStats.forEach(form => {
+    const canvas = container.querySelector(`#sparkline-${form.id}`);
+    if (!canvas) return;
+
+    const daily = form.stats?.dailyCounts || [0, 0, 0, 0, 0, 0, 0];
+    const themeColor = form.settings?.themeColor || '#6c5ce7';
+    const hasData = daily.some(v => v > 0);
+
+    new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: daily.map(() => ''),
+        datasets: [{
+          data: daily,
+          borderColor: hasData ? themeColor : 'var(--border-default)',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.4,
+          fill: true,
+          backgroundColor: hasData ? themeColor + '18' : 'transparent',
+        }],
+      },
+      options: {
+        responsive: true,
+        animation: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        scales: {
+          x: { display: false },
+          y: { display: false, beginAtZero: true },
+        },
+        elements: { line: { borderCapStyle: 'round' } },
+      },
+    });
+  });
+}
+
 function renderFormCard(form) {
   const stats = form.stats || {};
   const questionCount = (form.questions || []).length;
@@ -174,6 +216,10 @@ function renderFormCard(form) {
         <div class="form-card-meta">
           <span class="chip">${questionCount} question${questionCount !== 1 ? 's' : ''}</span>
           <span class="chip">${stats.total || 0} response${stats.total !== 1 ? 's' : ''}</span>
+        </div>
+
+        <div class="form-card-sparkline">
+          <canvas id="sparkline-${form.id}" height="48"></canvas>
         </div>
 
         <div class="form-card-footer">
