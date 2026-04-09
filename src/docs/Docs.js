@@ -1,13 +1,51 @@
 import { createIcons, BookOpen, Code, FileText, Settings, Key, Zap } from 'lucide';
+import { navigateTo } from '../router.js';
 
 export function renderDocs(container) {
   container.innerHTML = `
-    <div class="page-container fade-in">
-      <div class="page-title-row">
+    <div class="docs-page fade-in">
+
+      <!-- Morph backdrop -->
+      <div class="docs-backdrop" aria-hidden="true">
+        <svg class="docs-backdrop-svg" viewBox="0 0 1440 560" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="dbg1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--primary-500)" stop-opacity="0.06"/>
+              <stop offset="100%" stop-color="var(--accent-500)" stop-opacity="0.03"/>
+            </linearGradient>
+            <linearGradient id="dbg2" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="var(--primary-400)" stop-opacity="0.04"/>
+              <stop offset="100%" stop-color="var(--accent-400)" stop-opacity="0.06"/>
+            </linearGradient>
+          </defs>
+          <!-- Morphing blobs -->
+          <path class="docs-blob docs-blob--1" fill="url(#dbg1)"
+            d="M0,320 C180,240 360,400 540,300 C720,200 900,360 1080,280 C1260,200 1380,320 1440,280 L1440,0 L0,0 Z"/>
+          <path class="docs-blob docs-blob--2" fill="url(#dbg2)"
+            d="M0,200 C240,320 480,160 720,260 C960,360 1200,200 1440,300 L1440,560 L0,560 Z"/>
+          <!-- Dot grid pattern -->
+          <g class="docs-dots" fill="var(--primary-500)" opacity="0.04">
+            ${Array.from({ length: 30 }, (_, i) => {
+              const x = (i % 10) * 150 + 45;
+              const y = Math.floor(i / 10) * 180 + 60;
+              return `<circle cx="${x}" cy="${y}" r="2"/>`;
+            }).join('')}
+          </g>
+        </svg>
+      </div>
+
+      <div class="docs-page-header">
         <div>
-          <h1 class="page-title">Documentation</h1>
+          <h1 class="page-title">Dashboard</h1>
           <p class="page-subtitle">Learn how to use Ephemeral Forms and extend it with Plugins.</p>
         </div>
+      </div>
+
+      <div class="dashboard-tabs">
+        <button class="dashboard-tab" data-tab="forms" id="tab-forms">Forms</button>
+        <button class="dashboard-tab active" data-tab="docs">
+          <i data-lucide="book-open" style="width: 14px; height: 14px;"></i> Docs
+        </button>
       </div>
 
       <div class="docs-layout">
@@ -24,7 +62,7 @@ export function renderDocs(container) {
           <section id="docs-intro" class="docs-section">
             <h2>Welcome to Ephemeral Forms</h2>
             <p>Ephemeral Forms is a zero-login, offline-first form builder running purely in your browser. All of your data is stored locally in IndexedDB.</p>
-            
+
             <div class="card" style="padding: 1.5rem; margin-top: 1rem; border-left: 4px solid var(--primary-500);">
               <h4>Privacy First</h4>
               <p style="margin-top: 0.5rem; color: var(--text-secondary);">No data is ever sent to a server unless you specifically export it or write a custom plugin to do so.</p>
@@ -51,7 +89,7 @@ export function renderDocs(container) {
           <section id="docs-plugins" class="docs-section">
             <h2>The Plugin System</h2>
             <p>Ephemeral Forms is designed to be highly extensible. You can build plugins that add new question types, new themes, or new export formats.</p>
-            
+
             <h3>How Plugins Work</h3>
             <p>Plugins interact with the global <code>PluginAPI</code>. They must define a unique ID, a name, and an <code>init</code> function.</p>
 
@@ -108,6 +146,9 @@ window.EphemeralPlugins.register({
     }
   });
 
+  // Forms tab navigation
+  container.querySelector('#tab-forms')?.addEventListener('click', () => navigateTo('/dashboard'));
+
   // Smooth scrolling for docs nav
   const links = container.querySelectorAll('.docs-nav-link');
   links.forEach(link => {
@@ -115,7 +156,7 @@ window.EphemeralPlugins.register({
       e.preventDefault();
       const targetId = link.getAttribute('href').substring(1);
       const targetSec = container.querySelector('#' + targetId);
-      
+
       links.forEach(l => l.classList.remove('active'));
       link.classList.add('active');
 
@@ -126,14 +167,14 @@ window.EphemeralPlugins.register({
   });
 
   // Highlight active section on scroll
-  const content = container.querySelector('.page-container');
+  const mainContent = container.closest('.main-content') || container;
   const sections = container.querySelectorAll('.docs-section');
-  
-  content.addEventListener('scroll', () => {
+
+  mainContent.addEventListener('scroll', () => {
     let current = '';
     sections.forEach(sec => {
-      const secTop = sec.offsetTop;
-      if (content.scrollTop >= (secTop - 150)) {
+      const rect = sec.getBoundingClientRect();
+      if (rect.top <= 160) {
         current = sec.getAttribute('id');
       }
     });

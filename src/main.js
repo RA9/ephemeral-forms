@@ -106,7 +106,7 @@ async function init() {
     if (shell) shell.classList.remove('responder-mode');
     return renderPluginManager(contentArea);
   });
-  registerRoute('/docs', () => {
+  registerRoute('/dashboard/docs', () => {
     const shell = document.querySelector('.app-shell');
     if (shell) shell.classList.remove('responder-mode');
     return renderDocs(contentArea);

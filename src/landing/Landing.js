@@ -1,4 +1,4 @@
-import { createIcons, Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User } from 'lucide';
+import { createIcons, Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon } from 'lucide';
 import { navigateTo } from '../router.js';
 import { getCreatorId, saveCreatorId, setWorkspaceSession } from '../storage/creatorStore.js';
 import { createCreator } from '../firebase/creatorService.js';
@@ -18,6 +18,7 @@ export function renderLandingPage(container) {
 }
 
 function renderPage(container, hasIdentity) {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   container.innerHTML = `
     <div class="lp">
 
@@ -34,6 +35,9 @@ function renderPage(container, hasIdentity) {
             <span class="lp-logo-text">Ephemeral Forms</span>
           </div>
           <div class="lp-nav-links">
+            <button class="lp-nav-link lp-theme-toggle" id="landing-theme-toggle" title="${isDark ? 'Light' : 'Dark'} mode">
+              <i data-lucide="${isDark ? 'sun' : 'moon'}" style="width:16px;height:16px;"></i>
+            </button>
             ${hasIdentity ? '<button class="lp-nav-link" id="landing-nav-docs">Docs</button>' : ''}
             ${hasIdentity
               ? '<button class="lp-nav-cta" id="landing-cta-nav">Dashboard</button>'
@@ -157,9 +161,12 @@ function renderPage(container, hasIdentity) {
             <span>Ephemeral Forms</span>
           </div>
           <div class="lp-footer-links">
-            <button class="lp-footer-link" id="landing-footer-dashboard">Dashboard</button>
-            <button class="lp-footer-link" id="landing-footer-build">Builder</button>
-            <button class="lp-footer-link" id="landing-footer-docs">Docs</button>
+            ${hasIdentity
+              ? `<button class="lp-footer-link" id="landing-footer-dashboard">Dashboard</button>
+                 <button class="lp-footer-link" id="landing-footer-build">Builder</button>
+                 <button class="lp-footer-link" id="landing-footer-docs">Docs</button>`
+              : `<button class="lp-footer-link" id="landing-footer-getstarted">Get Started</button>`
+            }
           </div>
         </div>
       </footer>
@@ -167,7 +174,7 @@ function renderPage(container, hasIdentity) {
     </div>
   `;
 
-  createIcons({ icons: { Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User } });
+  createIcons({ icons: { Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon } });
 
   // ---- Event Bindings ----
   container.querySelector('#landing-cta-nav').addEventListener('click', () => {
@@ -178,17 +185,26 @@ function renderPage(container, hasIdentity) {
     if (hasIdentity) navigateTo('/dashboard');
     else showOnboarding(container);
   });
-  container.querySelector('#landing-nav-docs')?.addEventListener('click', () => navigateTo('/docs'));
+  container.querySelector('#landing-nav-docs')?.addEventListener('click', () => navigateTo('/dashboard/docs'));
   container.querySelector('#landing-cta-bottom').addEventListener('click', () => {
     if (hasIdentity) navigateTo('/dashboard');
     else showOnboarding(container);
   });
-  container.querySelector('#landing-footer-dashboard').addEventListener('click', () => navigateTo('/dashboard'));
-  container.querySelector('#landing-footer-build').addEventListener('click', () => {
-    if (hasIdentity) navigateTo('/build');
-    else showOnboarding(container);
+
+  // Footer links (only rendered when hasIdentity)
+  container.querySelector('#landing-footer-dashboard')?.addEventListener('click', () => navigateTo('/dashboard'));
+  container.querySelector('#landing-footer-build')?.addEventListener('click', () => navigateTo('/build'));
+  container.querySelector('#landing-footer-docs')?.addEventListener('click', () => navigateTo('/dashboard/docs'));
+  container.querySelector('#landing-footer-getstarted')?.addEventListener('click', () => showOnboarding(container));
+
+  // Dark mode toggle
+  container.querySelector('#landing-theme-toggle')?.addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    renderPage(container, hasIdentity);
   });
-  container.querySelector('#landing-footer-docs').addEventListener('click', () => navigateTo('/docs'));
 
   // ---- Reveal on scroll ----
   const observer = new IntersectionObserver((entries) => {

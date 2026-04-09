@@ -1,4 +1,4 @@
-import { createIcons, LayoutDashboard, PlusCircle, Puzzle, Sun, Moon, Menu, BookOpen, Globe } from 'lucide';
+import { createIcons, LayoutDashboard, PlusCircle, Puzzle, Sun, Moon, Menu, Globe } from 'lucide';
 import { navigateTo, getCurrentPath } from './router.js';
 
 export function renderAppShell(container) {
@@ -45,11 +45,6 @@ export function renderAppShell(container) {
             <span class="nav-item-icon"><i data-lucide="puzzle"></i></span>
             <span>Plugins</span>
           </button>
-          <div class="sidebar-section-title">Help & Docs</div>
-          <button class="nav-item" data-nav="/docs" id="nav-docs">
-            <span class="nav-item-icon"><i data-lucide="book-open"></i></span>
-            <span>Documentation</span>
-          </button>
         </nav>
 
         <div class="sidebar-footer">
@@ -77,7 +72,6 @@ export function renderAppShell(container) {
       Sun,
       Moon,
       Menu,
-      BookOpen,
       Globe
     }
   });
@@ -124,7 +118,7 @@ export function renderAppShell(container) {
       const navPath = item.dataset.nav;
       if (navPath) {
         // Highlight Dashboard if at root or /dashboard
-        const isActive = (navPath === '/dashboard' && (path === '/dashboard' || path === '/')) || 
+        const isActive = (navPath === '/dashboard' && (path === '/dashboard' || path === '/' || path.startsWith('/dashboard/'))) ||
                         (navPath !== '/dashboard' && path === navPath);
         item.classList.toggle('active', isActive);
       }

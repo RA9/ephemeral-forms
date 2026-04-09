@@ -1,5 +1,5 @@
 import { Chart, registerables } from 'chart.js';
-import { createIcons, FileText, BarChart3, TrendingUp, Plus, Search, Edit2, Share2, Copy, Trash2 } from 'lucide';
+import { createIcons, FileText, BarChart3, TrendingUp, Plus, Search, Edit2, Share2, Copy, Trash2, BookOpen } from 'lucide';
 import { listForms, deleteForm, duplicateForm, getForm } from '../storage/formStore.js';
 import { getResponseCount, getResponseStats } from '../storage/responseStore.js';
 import { showToast, showConfirm, formatDate, formatNumber, escapeHtml, escapeAttr } from '../utils.js';
@@ -32,6 +32,13 @@ export async function renderDashboard(container) {
         </div>
         <button class="btn btn-primary" id="create-form-btn">
           <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 8px;"></i> Create Form
+        </button>
+      </div>
+
+      <div class="dashboard-tabs">
+        <button class="dashboard-tab active" data-tab="forms">Forms</button>
+        <button class="dashboard-tab" data-tab="docs" id="tab-docs">
+          <i data-lucide="book-open" style="width: 14px; height: 14px;"></i> Docs
         </button>
       </div>
 
@@ -102,7 +109,8 @@ export async function renderDashboard(container) {
       Edit2,
       Share2,
       Copy,
-      Trash2
+      Trash2,
+      BookOpen
     }
   });
 
@@ -111,6 +119,9 @@ export async function renderDashboard(container) {
   // Bind events
   container.querySelector('#create-form-btn')?.addEventListener('click', () => navigateTo('/build'));
   container.querySelector('#create-form-empty')?.addEventListener('click', () => navigateTo('/build'));
+
+  // Docs tab
+  container.querySelector('#tab-docs')?.addEventListener('click', () => navigateTo('/dashboard/docs'));
 
   // Search
   container.querySelector('#form-search')?.addEventListener('input', (e) => {

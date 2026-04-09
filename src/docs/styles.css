@@ -1,6 +1,10 @@
+.page-container.page-container--full {
+  max-width: 100%;
+}
+
 .docs-layout {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 200px 1fr;
   gap: var(--space-8);
   margin-top: var(--space-6);
   align-items: start;
