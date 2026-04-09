@@ -106,9 +106,9 @@ async function init() {
     if (shell) shell.classList.remove('responder-mode');
     return renderPluginManager(contentArea);
   });
-  registerRoute('/dashboard/docs', () => {
+  registerRoute('/docs', () => {
     const shell = document.querySelector('.app-shell');
-    if (shell) shell.classList.remove('responder-mode');
+    if (shell) shell.classList.add('responder-mode');
     return renderDocs(contentArea);
   });
 
@@ -121,7 +121,7 @@ window.addEventListener('hashchange', () => {
   const shell = document.querySelector('.app-shell');
   if (shell) {
     const hash = window.location.hash;
-    if ((hash.startsWith('#/form/') && !hash.endsWith('/responses')) || hash.startsWith('#/share/')) {
+    if ((hash.startsWith('#/form/') && !hash.endsWith('/responses')) || hash.startsWith('#/share/') || hash === '#/docs') {
       shell.classList.add('responder-mode');
     } else {
       shell.classList.remove('responder-mode');

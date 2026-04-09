@@ -1,7 +1,9 @@
-import { createIcons, BookOpen, Code, FileText, Settings, Key, Zap } from 'lucide';
+import { createIcons, BookOpen, Code, FileText, Settings, Key, Zap, ArrowRight, Sun, Moon } from 'lucide';
 import { navigateTo } from '../router.js';
 
 export function renderDocs(container) {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
   container.innerHTML = `
     <div class="docs-page fade-in">
 
@@ -18,12 +20,10 @@ export function renderDocs(container) {
               <stop offset="100%" stop-color="var(--accent-400)" stop-opacity="0.06"/>
             </linearGradient>
           </defs>
-          <!-- Morphing blobs -->
           <path class="docs-blob docs-blob--1" fill="url(#dbg1)"
             d="M0,320 C180,240 360,400 540,300 C720,200 900,360 1080,280 C1260,200 1380,320 1440,280 L1440,0 L0,0 Z"/>
           <path class="docs-blob docs-blob--2" fill="url(#dbg2)"
             d="M0,200 C240,320 480,160 720,260 C960,360 1200,200 1440,300 L1440,560 L0,560 Z"/>
-          <!-- Dot grid pattern -->
           <g class="docs-dots" fill="var(--primary-500)" opacity="0.04">
             ${Array.from({ length: 30 }, (_, i) => {
               const x = (i % 10) * 150 + 45;
@@ -34,67 +34,80 @@ export function renderDocs(container) {
         </svg>
       </div>
 
-      <div class="docs-page-header">
-        <div>
-          <h1 class="page-title">Dashboard</h1>
-          <p class="page-subtitle">Learn how to use Ephemeral Forms and extend it with Plugins.</p>
+      <!-- Nav (same style as landing) -->
+      <nav class="docs-nav">
+        <div class="docs-nav-inner">
+          <a class="docs-nav-logo" id="docs-nav-home">
+            <svg viewBox="0 0 32 32" width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="32" height="32" rx="8" fill="#6c5ce7"/>
+              <text x="16" y="23" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="white">ef</text>
+            </svg>
+            <span>Ephemeral Forms</span>
+          </a>
+          <div class="docs-nav-links">
+            <button class="docs-nav-link" id="docs-theme-toggle" title="${isDark ? 'Light' : 'Dark'} mode">
+              <i data-lucide="${isDark ? 'sun' : 'moon'}" style="width:16px;height:16px;"></i>
+            </button>
+            <button class="docs-nav-link" id="docs-nav-back">
+              <i data-lucide="arrow-right" style="width:14px;height:14px;transform:rotate(180deg);"></i> Back
+            </button>
+          </div>
         </div>
-      </div>
+      </nav>
 
-      <div class="dashboard-tabs">
-        <button class="dashboard-tab" data-tab="forms" id="tab-forms">Forms</button>
-        <button class="dashboard-tab active" data-tab="docs">
-          <i data-lucide="book-open" style="width: 14px; height: 14px;"></i> Docs
-        </button>
-      </div>
+      <!-- Content -->
+      <div class="docs-wrapper">
+        <div class="docs-hero">
+          <h1 class="docs-hero-title">Documentation</h1>
+          <p class="docs-hero-sub">Learn how to use Ephemeral Forms and extend it with plugins.</p>
+        </div>
 
-      <div class="docs-layout">
-        <aside class="docs-sidebar">
-          <ul class="docs-nav">
-            <li><a href="#docs-intro" class="docs-nav-link active"><i data-lucide="book-open"></i> Introduction</a></li>
-            <li><a href="#docs-forms" class="docs-nav-link"><i data-lucide="file-text"></i> Using Forms</a></li>
-            <li><a href="#docs-plugins" class="docs-nav-link"><i data-lucide="puzzle"></i> Plugin System</a></li>
-            <li><a href="#docs-api" class="docs-nav-link"><i data-lucide="code"></i> API Reference</a></li>
-          </ul>
-        </aside>
-
-        <div class="docs-content">
-          <section id="docs-intro" class="docs-section">
-            <h2>Welcome to Ephemeral Forms</h2>
-            <p>Ephemeral Forms is a zero-login, offline-first form builder running purely in your browser. All of your data is stored locally in IndexedDB.</p>
-
-            <div class="card" style="padding: 1.5rem; margin-top: 1rem; border-left: 4px solid var(--primary-500);">
-              <h4>Privacy First</h4>
-              <p style="margin-top: 0.5rem; color: var(--text-secondary);">No data is ever sent to a server unless you specifically export it or write a custom plugin to do so.</p>
-            </div>
-          </section>
-
-          <section id="docs-forms" class="docs-section">
-            <h2>Creating & Managing Forms</h2>
-            <h3>The Form Builder</h3>
-            <p>Navigate to <strong>Create Form</strong> to access the drag-and-drop builder. You can add multiple question types ranging from short text to complex linear scales.</p>
-            <ul>
-              <li><strong>Reordering:</strong> Use the drag handle on the top left of a question to move it.</li>
-              <li><strong>Options:</strong> For multiple choice or dropdowns, click "+ Add option".</li>
-              <li><strong>Settings:</strong> Change the theme color or the completion message in the right sidebar.</li>
+        <div class="docs-layout">
+          <aside class="docs-sidebar">
+            <ul class="docs-sidebar-nav">
+              <li><a href="#docs-intro" class="docs-nav-item active"><i data-lucide="book-open"></i> Introduction</a></li>
+              <li><a href="#docs-forms" class="docs-nav-item"><i data-lucide="file-text"></i> Using Forms</a></li>
+              <li><a href="#docs-plugins" class="docs-nav-item"><i data-lucide="puzzle"></i> Plugin System</a></li>
+              <li><a href="#docs-api" class="docs-nav-item"><i data-lucide="code"></i> API Reference</a></li>
             </ul>
+          </aside>
 
-            <h3>Sharing Forms</h3>
-            <p>Click the <strong>Share</strong> button to copy a special link. Since the app is offline-first, standard sharing links embed the form definition into the URL if there's no backend, or it relies on local storage for same-device responding.</p>
+          <div class="docs-content">
+            <section id="docs-intro" class="docs-section">
+              <h2>Welcome to Ephemeral Forms</h2>
+              <p>Ephemeral Forms is a zero-login, offline-first form builder running purely in your browser. All of your data is stored locally in IndexedDB.</p>
 
-            <h3>Viewing Responses</h3>
-            <p>Navigate to your <strong>Dashboard</strong> and click on a form to see its responses. The analytics page provides automatically generated charts for multi-choice data, and allows you to export all answers as CSV or JSON.</p>
-          </section>
+              <div class="docs-callout">
+                <h4>Privacy First</h4>
+                <p>No data is ever sent to a server unless you specifically export it or write a custom plugin to do so.</p>
+              </div>
+            </section>
 
-          <section id="docs-plugins" class="docs-section">
-            <h2>The Plugin System</h2>
-            <p>Ephemeral Forms is designed to be highly extensible. You can build plugins that add new question types, new themes, or new export formats.</p>
+            <section id="docs-forms" class="docs-section">
+              <h2>Creating & Managing Forms</h2>
+              <h3>The Form Builder</h3>
+              <p>Navigate to <strong>Create Form</strong> to access the drag-and-drop builder. You can add multiple question types ranging from short text to complex linear scales.</p>
+              <ul>
+                <li><strong>Reordering:</strong> Use the drag handle on the top left of a question to move it.</li>
+                <li><strong>Options:</strong> For multiple choice or dropdowns, click "+ Add option".</li>
+                <li><strong>Settings:</strong> Change the theme color or the completion message in the right sidebar.</li>
+              </ul>
 
-            <h3>How Plugins Work</h3>
-            <p>Plugins interact with the global <code>PluginAPI</code>. They must define a unique ID, a name, and an <code>init</code> function.</p>
+              <h3>Sharing Forms</h3>
+              <p>Click the <strong>Share</strong> button to copy a special link. Since the app is offline-first, standard sharing links embed the form definition into the URL if there's no backend, or it relies on local storage for same-device responding.</p>
 
-            <pre class="code-block"><code>
-// Example of a basic plugin
+              <h3>Viewing Responses</h3>
+              <p>Navigate to your <strong>Dashboard</strong> and click on a form to see its responses. The analytics page provides automatically generated charts for multi-choice data, and allows you to export all answers as CSV or JSON.</p>
+            </section>
+
+            <section id="docs-plugins" class="docs-section">
+              <h2>The Plugin System</h2>
+              <p>Ephemeral Forms is designed to be highly extensible. You can build plugins that add new question types, new themes, or new export formats.</p>
+
+              <h3>How Plugins Work</h3>
+              <p>Plugins interact with the global <code>PluginAPI</code>. They must define a unique ID, a name, and an <code>init</code> function.</p>
+
+              <pre class="code-block"><code>// Example of a basic plugin
 window.EphemeralPlugins.register({
   id: 'my-custom-plugin',
   name: 'My Custom Feature',
@@ -103,54 +116,75 @@ window.EphemeralPlugins.register({
   init: (api) => {
     console.log('Plugin initialized!');
   }
-});
-            </code></pre>
-          </section>
+});</code></pre>
+            </section>
 
-          <section id="docs-api" class="docs-section">
-            <h2>API Reference</h2>
-            <p>The <code>api</code> object passed to your init function exposes several capabilities:</p>
+            <section id="docs-api" class="docs-section">
+              <h2>API Reference</h2>
+              <p>The <code>api</code> object passed to your init function exposes several capabilities:</p>
 
-            <div class="api-card card">
-              <h4><code>api.registerQuestionType(type, config)</code></h4>
-              <p>Adds a new question type to the builder.</p>
-              <ul>
-                <li><strong>type:</strong> String identifier (e.g., 'star_rating')</li>
-                <li><strong>config:</strong> Object containing <code>label</code>, <code>icon</code>, <code>render()</code>, and <code>validate()</code></li>
-              </ul>
-            </div>
+              <div class="docs-api-card">
+                <h4><code>api.registerQuestionType(type, config)</code></h4>
+                <p>Adds a new question type to the builder.</p>
+                <ul>
+                  <li><strong>type:</strong> String identifier (e.g., 'star_rating')</li>
+                  <li><strong>config:</strong> Object containing <code>label</code>, <code>icon</code>, <code>render()</code>, and <code>validate()</code></li>
+                </ul>
+              </div>
 
-            <div class="api-card card">
-              <h4><code>api.addHook(event, callback)</code></h4>
-              <p>Listen to core application events.</p>
-              <ul>
-                <li><strong>event:</strong> 'onFormSubmit', 'beforeSave', etc.</li>
-                <li><strong>callback:</strong> Function triggered with event data.</li>
-              </ul>
-            </div>
+              <div class="docs-api-card">
+                <h4><code>api.addHook(event, callback)</code></h4>
+                <p>Listen to core application events.</p>
+                <ul>
+                  <li><strong>event:</strong> 'onFormSubmit', 'beforeSave', etc.</li>
+                  <li><strong>callback:</strong> Function triggered with event data.</li>
+                </ul>
+              </div>
 
-            <div class="api-card card">
-              <h4><code>api.registerTheme(themeDefinition)</code></h4>
-              <p>Register a completely custom CSS theme for the responder view.</p>
-            </div>
-          </section>
+              <div class="docs-api-card">
+                <h4><code>api.registerTheme(themeDefinition)</code></h4>
+                <p>Register a completely custom CSS theme for the responder view.</p>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
+
+      <!-- Footer -->
+      <footer class="docs-footer">
+        <div class="docs-footer-inner">
+          <div class="docs-footer-brand">
+            <svg viewBox="0 0 32 32" width="18" height="18" fill="none"><rect width="32" height="32" rx="8" fill="#6c5ce7"/><text x="16" y="23" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="white">ef</text></svg>
+            <span>Ephemeral Forms</span>
+          </div>
+          <div class="docs-footer-links">
+            <button class="docs-footer-link" id="docs-footer-home">Home</button>
+            <button class="docs-footer-link" id="docs-footer-dashboard">Dashboard</button>
+          </div>
+        </div>
+      </footer>
     </div>
   `;
 
-  // Init Lucide Icons
-  createIcons({
-    icons: {
-      BookOpen, Code, FileText, Settings, Key, Zap
-    }
+  createIcons({ icons: { BookOpen, Code, FileText, Settings, Key, Zap, ArrowRight, Sun, Moon } });
+
+  // Nav events
+  container.querySelector('#docs-nav-home')?.addEventListener('click', () => navigateTo('/'));
+  container.querySelector('#docs-nav-back')?.addEventListener('click', () => history.back());
+  container.querySelector('#docs-footer-home')?.addEventListener('click', () => navigateTo('/'));
+  container.querySelector('#docs-footer-dashboard')?.addEventListener('click', () => navigateTo('/dashboard'));
+
+  // Theme toggle
+  container.querySelector('#docs-theme-toggle')?.addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    renderDocs(container);
   });
 
-  // Forms tab navigation
-  container.querySelector('#tab-forms')?.addEventListener('click', () => navigateTo('/dashboard'));
-
-  // Smooth scrolling for docs nav
-  const links = container.querySelectorAll('.docs-nav-link');
+  // Smooth scrolling for sidebar nav
+  const links = container.querySelectorAll('.docs-nav-item');
   links.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
@@ -167,23 +201,21 @@ window.EphemeralPlugins.register({
   });
 
   // Highlight active section on scroll
-  const mainContent = container.closest('.main-content') || container;
-  const sections = container.querySelectorAll('.docs-section');
-
-  mainContent.addEventListener('scroll', () => {
+  const onScroll = () => {
     let current = '';
-    sections.forEach(sec => {
+    container.querySelectorAll('.docs-section').forEach(sec => {
       const rect = sec.getBoundingClientRect();
       if (rect.top <= 160) {
         current = sec.getAttribute('id');
       }
     });
-
     links.forEach(link => {
       link.classList.remove('active');
       if (link.getAttribute('href').substring(1) === current) {
         link.classList.add('active');
       }
     });
-  });
+  };
+
+  window.addEventListener('scroll', onScroll);
 }

@@ -47,6 +47,38 @@ function renderPage(container, hasIdentity) {
         </div>
       </nav>
 
+      <!-- ===== MORPH BACKDROP ===== -->
+      <div class="lp-backdrop" aria-hidden="true">
+        <svg class="lp-backdrop-svg" viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lbg1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="var(--primary-500)" stop-opacity="0.07"/>
+              <stop offset="100%" stop-color="var(--accent-500)" stop-opacity="0.03"/>
+            </linearGradient>
+            <linearGradient id="lbg2" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="var(--primary-400)" stop-opacity="0.04"/>
+              <stop offset="100%" stop-color="var(--accent-400)" stop-opacity="0.07"/>
+            </linearGradient>
+            <radialGradient id="lbg3" cx="50%" cy="30%" r="60%">
+              <stop offset="0%" stop-color="var(--primary-500)" stop-opacity="0.05"/>
+              <stop offset="100%" stop-color="var(--primary-500)" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <path class="lp-blob lp-blob--1" fill="url(#lbg1)"
+            d="M0,400 C180,300 360,500 540,380 C720,260 900,440 1080,350 C1260,260 1380,400 1440,350 L1440,0 L0,0 Z"/>
+          <path class="lp-blob lp-blob--2" fill="url(#lbg2)"
+            d="M0,300 C240,420 480,260 720,360 C960,460 1200,300 1440,400 L1440,900 L0,900 Z"/>
+          <circle class="lp-glow" cx="720" cy="280" r="400" fill="url(#lbg3)"/>
+          <g class="lp-grid-dots" fill="var(--primary-500)" opacity="0.035">
+            ${Array.from({ length: 80 }, (_, i) => {
+              const x = (i % 16) * 95 + 30;
+              const y = Math.floor(i / 16) * 160 + 80;
+              return `<circle cx="${x}" cy="${y}" r="1.5"/>`;
+            }).join('')}
+          </g>
+        </svg>
+      </div>
+
       <!-- ===== HERO ===== -->
       <section class="lp-hero">
         <div class="lp-hero-body">
@@ -62,6 +94,47 @@ function renderPage(container, hasIdentity) {
             }
           </div>
           <p class="lp-hero-note">Free forever. No sign-up required.</p>
+        </div>
+
+        <div class="lp-hero-visual" aria-hidden="true">
+          <div class="lp-mock-form">
+            <div class="lp-mock-header">
+              <div class="lp-mock-dot" style="background: #ff5f57;"></div>
+              <div class="lp-mock-dot" style="background: #febc2e;"></div>
+              <div class="lp-mock-dot" style="background: #28c840;"></div>
+              <span class="lp-mock-tab">Customer Feedback</span>
+            </div>
+            <div class="lp-mock-body">
+              <div class="lp-mock-field lp-mock-field--active">
+                <div class="lp-mock-label">How was your experience?</div>
+                <div class="lp-mock-stars">
+                  <span class="lp-mock-star filled">&#9733;</span>
+                  <span class="lp-mock-star filled">&#9733;</span>
+                  <span class="lp-mock-star filled">&#9733;</span>
+                  <span class="lp-mock-star filled">&#9733;</span>
+                  <span class="lp-mock-star">&#9733;</span>
+                </div>
+              </div>
+              <div class="lp-mock-field">
+                <div class="lp-mock-label">What did you enjoy most?</div>
+                <div class="lp-mock-input">
+                  <span class="lp-mock-typing">The simplicity and speed...</span>
+                  <span class="lp-mock-cursor"></span>
+                </div>
+              </div>
+              <div class="lp-mock-field">
+                <div class="lp-mock-label">Would you recommend us?</div>
+                <div class="lp-mock-options">
+                  <span class="lp-mock-option selected">Yes</span>
+                  <span class="lp-mock-option">Maybe</span>
+                  <span class="lp-mock-option">No</span>
+                </div>
+              </div>
+              <div class="lp-mock-submit">
+                <div class="lp-mock-btn">Submit</div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -163,10 +236,10 @@ function renderPage(container, hasIdentity) {
           <div class="lp-footer-links">
             ${hasIdentity
               ? `<button class="lp-footer-link" id="landing-footer-dashboard">Dashboard</button>
-                 <button class="lp-footer-link" id="landing-footer-build">Builder</button>
-                 <button class="lp-footer-link" id="landing-footer-docs">Docs</button>`
+                 <button class="lp-footer-link" id="landing-footer-build">Builder</button>`
               : `<button class="lp-footer-link" id="landing-footer-getstarted">Get Started</button>`
             }
+            <button class="lp-footer-link" id="landing-footer-docs">Docs</button>
           </div>
         </div>
       </footer>
@@ -185,7 +258,7 @@ function renderPage(container, hasIdentity) {
     if (hasIdentity) navigateTo('/dashboard');
     else showOnboarding(container);
   });
-  container.querySelector('#landing-nav-docs')?.addEventListener('click', () => navigateTo('/dashboard/docs'));
+  container.querySelector('#landing-nav-docs')?.addEventListener('click', () => navigateTo('/docs'));
   container.querySelector('#landing-cta-bottom').addEventListener('click', () => {
     if (hasIdentity) navigateTo('/dashboard');
     else showOnboarding(container);
@@ -194,7 +267,7 @@ function renderPage(container, hasIdentity) {
   // Footer links (only rendered when hasIdentity)
   container.querySelector('#landing-footer-dashboard')?.addEventListener('click', () => navigateTo('/dashboard'));
   container.querySelector('#landing-footer-build')?.addEventListener('click', () => navigateTo('/build'));
-  container.querySelector('#landing-footer-docs')?.addEventListener('click', () => navigateTo('/dashboard/docs'));
+  container.querySelector('#landing-footer-docs')?.addEventListener('click', () => navigateTo('/docs'));
   container.querySelector('#landing-footer-getstarted')?.addEventListener('click', () => showOnboarding(container));
 
   // Dark mode toggle

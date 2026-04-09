@@ -118,7 +118,7 @@ export function renderAppShell(container) {
       const navPath = item.dataset.nav;
       if (navPath) {
         // Highlight Dashboard if at root or /dashboard
-        const isActive = (navPath === '/dashboard' && (path === '/dashboard' || path === '/' || path.startsWith('/dashboard/'))) ||
+        const isActive = (navPath === '/dashboard' && (path === '/dashboard' || path === '/')) ||
                         (navPath !== '/dashboard' && path === navPath);
         item.classList.toggle('active', isActive);
       }
