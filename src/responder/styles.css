@@ -76,20 +76,7 @@
   max-width: 520px;
 }
 
-.rfp-step-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: rgba(255,255,255,0.2);
-  border: 1px solid rgba(255,255,255,0.3);
-  border-radius: var(--radius-full);
-  padding: var(--space-1) var(--space-4);
-  font-size: var(--font-sm);
-  font-weight: var(--font-weight-semibold);
-  width: fit-content;
-}
-.rfp-step-sep { opacity: 0.5; margin: 0 2px; }
-.rfp-step-total { opacity: 0.7; }
+/* (step badge removed — replaced by stepper below) */
 
 .rfp-hero-wave {
   position: relative;
@@ -102,7 +89,121 @@
   display: block;
 }
 
-/* ---- Progress Bar ---- */
+/* ---- Stepper & Progress ---- */
+.rfp-stepper-wrap {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-6) var(--space-2);
+}
+
+.rfp-stepper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+}
+
+.rfp-stepper-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.rfp-stepper-item:last-child {
+  flex: 0 0 auto;
+}
+
+.rfp-stepper-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-xs);
+  font-weight: var(--font-weight-bold);
+  border: 2px solid var(--border-default);
+  background: var(--surface);
+  color: var(--text-tertiary);
+  transition: all 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.rfp-stepper-item.active .rfp-stepper-dot {
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.15), 0 2px 8px rgba(108, 92, 231, 0.25);
+  transform: scale(1.1);
+}
+
+.rfp-stepper-item.completed .rfp-stepper-dot {
+  color: #fff;
+}
+
+.rfp-stepper-item.upcoming .rfp-stepper-dot {
+  background: var(--bg-tertiary);
+}
+
+.rfp-stepper-label {
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-tertiary);
+  margin-top: var(--space-2);
+  text-align: center;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 200ms ease;
+}
+
+.rfp-stepper-item.active .rfp-stepper-label {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.rfp-stepper-item.completed .rfp-stepper-label {
+  color: var(--text-secondary);
+}
+
+.rfp-stepper-connector {
+  position: absolute;
+  top: 15px;
+  left: calc(50% + 18px);
+  right: calc(-50% + 18px);
+  height: 2px;
+  background: var(--border-light);
+  border-radius: 1px;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.rfp-stepper-connector-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rfp-progress-bar-mini {
+  margin-top: var(--space-4);
+  height: 3px;
+  background: var(--border-light);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.rfp-progress-bar-mini-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Legacy progress classes (plugin compat) */
 .rfp-progress-wrap {
   display: flex;
   align-items: center;
@@ -111,7 +212,6 @@
   margin: 0 auto;
   padding: var(--space-4) var(--space-6) var(--space-2);
 }
-
 .rfp-progress-track {
   flex: 1;
   height: 6px;
@@ -119,13 +219,11 @@
   border-radius: var(--radius-full);
   overflow: hidden;
 }
-
 .rfp-progress-fill {
   height: 100%;
   border-radius: var(--radius-full);
   transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 .rfp-progress-label {
   font-size: var(--font-xs);
   color: var(--text-tertiary);
@@ -687,8 +785,30 @@
     padding: var(--space-5);
     border-radius: var(--radius-md);
   }
-  .rfp-progress-wrap {
+  .rfp-stepper-wrap {
     padding: var(--space-3) var(--space-4) var(--space-1);
+  }
+  .rfp-stepper-dot {
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
+  }
+  .rfp-stepper-item.active .rfp-stepper-dot {
+    transform: scale(1.05);
+  }
+  .rfp-stepper-connector {
+    top: 12px;
+    left: calc(50% + 15px);
+    right: calc(-50% + 15px);
+  }
+  .rfp-stepper-label {
+    font-size: 9px;
+    max-width: 56px;
+  }
+  .rfp-stepper-item.active .rfp-stepper-dot svg,
+  .rfp-stepper-item.completed .rfp-stepper-dot svg {
+    width: 10px;
+    height: 10px;
   }
   .rfp-btn-next,
   .rfp-btn-submit {

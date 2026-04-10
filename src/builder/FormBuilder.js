@@ -743,18 +743,20 @@ export async function renderFormBuilder(container, formId) {
       questions: form.questions,
       settings: form.settings,
     });
-
-    // Auto-sync to Firestore if this form has an active shared link
-    try {
-      const link = await getLinkStatus(formId);
-      if (link.active) {
-        await resyncSharedForm(formId, form);
-      }
-    } catch (e) {
-      // Shared sync is best-effort — don't block local save
-    }
-
     if (!silent) showToast('Form saved!', 'success');
+
+    // Sync to Firestore in the background (only on explicit save, not autosave)
+    if (!silent) {
+      syncToShared();
+    }
+  };
+
+  const syncToShared = () => {
+    getLinkStatus(formId).then(link => {
+      if (link.active) {
+        return resyncSharedForm(formId, form);
+      }
+    }).catch(() => {});
   };
 
   render();

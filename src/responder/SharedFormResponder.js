@@ -1,5 +1,5 @@
 // Shared Form Responder — renders a form fetched from Firestore via magic link
-import { getSharedForm, submitSharedResponse } from '../firebase/shareService.js';
+import { getSharedForm, listenToSharedForm, submitSharedResponse } from '../firebase/shareService.js';
 import { loadRemotePlugins } from '../firebase/creatorService.js';
 import { getQuestionType } from '../builder/questionTypes.js';
 import { showToast, escapeHtml, shuffleArray } from '../utils.js';
@@ -25,7 +25,7 @@ export async function renderSharedFormResponder(container, token) {
     return;
   }
 
-  const { form, expiresAt, formId, pluginIds } = result;
+  let { form, expiresAt, formId, pluginIds } = result;
 
   // Load remote custom plugins before rendering
   if (pluginIds && pluginIds.length > 0) {
@@ -34,42 +34,56 @@ export async function renderSharedFormResponder(container, token) {
     }
   }
 
-  // From here, reuse the same logic as FormResponder but submit to Firestore
-  let questions = [...form.questions];
-  if (form.settings.shuffleQuestions) {
-    const sections = [];
-    let currentGroup = [];
-    questions.forEach(q => {
-      if (q.type === 'section_header') {
-        if (currentGroup.length) sections.push(currentGroup);
-        sections.push([q]);
-        currentGroup = [];
-      } else {
-        currentGroup.push(q);
+  // Build pages from questions
+  function buildPages(sourceForm) {
+    let qs = [...sourceForm.questions];
+    if (sourceForm.settings.shuffleQuestions) {
+      const sections = [];
+      let currentGroup = [];
+      qs.forEach(q => {
+        if (q.type === 'section_header') {
+          if (currentGroup.length) sections.push(currentGroup);
+          sections.push([q]);
+          currentGroup = [];
+        } else {
+          currentGroup.push(q);
+        }
+      });
+      if (currentGroup.length) sections.push(currentGroup);
+      qs = sections.flatMap(group => {
+        if (group.length === 1 && group[0].type === 'section_header') return group;
+        return shuffleArray(group);
+      });
+    }
+    const p = [[]];
+    qs.forEach(q => {
+      if (q.type === 'section_header' && p[p.length - 1].length > 0) {
+        p.push([]);
       }
+      p[p.length - 1].push(q);
     });
-    if (currentGroup.length) sections.push(currentGroup);
-    questions = sections.flatMap(group => {
-      if (group.length === 1 && group[0].type === 'section_header') return group;
-      return shuffleArray(group);
-    });
+    return { questions: qs, pages: p };
   }
 
+  let { questions, pages } = buildPages(form);
   const answers = {};
   const errors = {};
   let submitted = false;
   let currentPage = 0;
+  let totalPages = pages.length;
+  let themeColor = form.settings.themeColor || '#6c5ce7';
 
-  const pages = [[]];
-  questions.forEach(q => {
-    if (q.type === 'section_header' && pages[pages.length - 1].length > 0) {
-      pages.push([]);
-    }
-    pages[pages.length - 1].push(q);
+  // Real-time listener: auto-update when form is edited
+  const unsubscribe = listenToSharedForm(formId, (updatedForm) => {
+    form = updatedForm;
+    themeColor = form.settings.themeColor || '#6c5ce7';
+    const rebuilt = buildPages(form);
+    questions = rebuilt.questions;
+    pages = rebuilt.pages;
+    totalPages = pages.length;
+    if (currentPage >= totalPages) currentPage = totalPages - 1;
+    if (!submitted) render();
   });
-
-  const totalPages = pages.length;
-  const themeColor = form.settings.themeColor || '#6c5ce7';
 
   const render = () => {
     if (submitted) {
@@ -118,6 +132,12 @@ export async function renderSharedFormResponder(container, token) {
     const pageTitle = sectionHeader?.sectionTitle || sectionHeader?.label || null;
     const pageDesc = sectionHeader?.sectionDesc || null;
 
+    // Build step labels from section headers
+    const stepLabels = pages.map((p, i) => {
+      const sh = p.find(q => q.type === 'section_header');
+      return sh?.sectionTitle || sh?.label || `Step ${i + 1}`;
+    });
+
     container.innerHTML = `
       <div class="rfp">
         <div class="rfp-hero" style="background: ${themeColor}">
@@ -131,13 +151,6 @@ export async function renderSharedFormResponder(container, token) {
               ${(isFirstPage && form.description) ? `<p class="rfp-hero-desc">${escapeHtml(form.description)}</p>` : ''}
               ${(!isFirstPage && pageDesc) ? `<p class="rfp-hero-desc">${escapeHtml(pageDesc)}</p>` : ''}
             </div>
-            ${totalPages > 1 ? `
-              <div class="rfp-step-badge">
-                <span class="rfp-step-current">${currentPage + 1}</span>
-                <span class="rfp-step-sep">/</span>
-                <span class="rfp-step-total">${totalPages}</span>
-              </div>
-            ` : ''}
           </div>
           <div class="rfp-hero-wave">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 60" preserveAspectRatio="none">
@@ -147,11 +160,24 @@ export async function renderSharedFormResponder(container, token) {
         </div>
 
         ${totalPages > 1 ? `
-          <div id="responder-progress-container" class="rfp-progress-wrap">
-            <div class="rfp-progress-track">
-              <div class="rfp-progress-fill" style="width: ${progress}%; background: ${themeColor}"></div>
+          <div id="responder-progress-container" class="rfp-stepper-wrap">
+            <div class="rfp-stepper">
+              ${stepLabels.map((label, i) => {
+                const state = i < currentPage ? 'completed' : i === currentPage ? 'active' : 'upcoming';
+                return `
+                  <div class="rfp-stepper-item ${state}">
+                    <div class="rfp-stepper-dot" style="${state === 'completed' || state === 'active' ? `background: ${themeColor}; border-color: ${themeColor};` : ''}">
+                      ${state === 'completed' ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 3.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : `<span>${i + 1}</span>`}
+                    </div>
+                    <span class="rfp-stepper-label">${escapeHtml(label)}</span>
+                    ${i < totalPages - 1 ? `<div class="rfp-stepper-connector"><div class="rfp-stepper-connector-fill" style="${i < currentPage ? `width:100%;background:${themeColor}` : 'width:0%'}"></div></div>` : ''}
+                  </div>
+                `;
+              }).join('')}
             </div>
-            <span class="rfp-progress-label">${Math.round(progress)}% complete</span>
+            <div class="rfp-progress-bar-mini">
+              <div class="rfp-progress-bar-mini-fill" style="width: ${progress}%; background: ${themeColor}"></div>
+            </div>
           </div>
         ` : ''}
 

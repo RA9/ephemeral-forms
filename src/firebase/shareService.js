@@ -2,7 +2,8 @@
 import { db } from './config.js';
 import {
   collection, doc, getDoc, setDoc, updateDoc,
-  query, where, getDocs, orderBy, addDoc, limit
+  query, where, getDocs, orderBy, addDoc, limit,
+  onSnapshot
 } from 'firebase/firestore';
 import { nanoid } from 'nanoid';
 import { hashPassphrase, verifyPassphrase } from '../utils/crypto.js';
@@ -205,6 +206,19 @@ export async function getSharedForm(token) {
   const form = JSON.parse(formData.formJson);
   const pluginIds = formData.pluginIds || [];
   return { form, expiresAt: link.expiresAt, token, formId: link.formId, pluginIds };
+}
+
+// ============================================================
+// LISTEN TO SHARED FORM IN REAL-TIME (respondent side)
+// ============================================================
+
+export function listenToSharedForm(formId, callback) {
+  return onSnapshot(doc(db, SHARED_FORMS, formId), (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const form = JSON.parse(data.formJson);
+    callback(form);
+  });
 }
 
 // ============================================================
