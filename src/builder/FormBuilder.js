@@ -5,6 +5,7 @@ import { createForm, getForm, updateForm } from '../storage/formStore.js';
 import { showToast, deepClone, escapeHtml } from '../utils.js';
 import { navigateTo } from '../router.js';
 import { showShareModal } from '../sharing/ShareModal.js';
+import { getLinkStatus, resyncSharedForm } from '../firebase/shareService.js';
 
 export async function renderFormBuilder(container, formId) {
   let form;
@@ -742,6 +743,17 @@ export async function renderFormBuilder(container, formId) {
       questions: form.questions,
       settings: form.settings,
     });
+
+    // Auto-sync to Firestore if this form has an active shared link
+    try {
+      const link = await getLinkStatus(formId);
+      if (link.active) {
+        await resyncSharedForm(formId, form);
+      }
+    } catch (e) {
+      // Shared sync is best-effort — don't block local save
+    }
+
     if (!silent) showToast('Form saved!', 'success');
   };
 
