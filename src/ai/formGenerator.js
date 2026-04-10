@@ -63,6 +63,8 @@ function checkRateLimit() {
 
 const SYSTEM_PROMPT = `You are a form builder AI. Given a user's description, generate a JSON object with a form title, description, and questions.
 
+IMPORTANT: Every form MUST begin with a section_header as the first question. Group related fields under section_headers to create logical steps. Never place fields before the first section_header.
+
 Respond with a JSON object:
 {
   "title": "Short form title",
@@ -187,6 +189,20 @@ function parseResponse(raw) {
       sectionDesc: q.sectionDesc || '',
     } : {}),
   }));
+
+  // Ensure questions always start with a section_header
+  if (questions.length > 0 && questions[0].type !== 'section_header') {
+    questions.unshift({
+      id: uuidv4(),
+      type: 'section_header',
+      label: title || 'Form',
+      helpText: '',
+      required: false,
+      placeholder: '',
+      sectionTitle: title || 'Form',
+      sectionDesc: description || '',
+    });
+  }
 
   return { title, description, questions };
 }

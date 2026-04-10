@@ -93,7 +93,7 @@ export async function renderFormBuilder(container, formId) {
         <div class="builder-main">
           <div class="builder-header">
             <div class="builder-header-left">
-              <button class="btn btn-ghost" id="builder-back" data-tooltip="Back to Dashboard">← Back</button>
+              <button id="builder-back" data-tooltip="Back to Dashboard">← Back</button>
               <div class="builder-title-area">
                 <input type="text" class="builder-title-input" id="form-title"
                   value="${escapeHtml(form.title)}" placeholder="Untitled Form" />
