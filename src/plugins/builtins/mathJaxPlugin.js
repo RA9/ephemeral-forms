@@ -1,6 +1,4 @@
 // MathJax Plugin: Parses and Renders LaTeX blocks using MathJax dynamically.
-import { escapeHtml } from '../../utils.js';
-
 let mathJaxLoaded = false;
 let mathJaxLoadingPromise = null;
 
@@ -35,7 +33,7 @@ export function setupMathJaxPlugin(api) {
     label: 'Math Equation',
     icon: 'sigma',
     category: 'advanced',
-    getDefault: () => ({ mathSyntax: 'E = mc^2' }),
+    getDefault: () => ({ mathSyntax: '' }),
 
     render: (question, value, onChange) => {
       const container = document.createElement('div');
@@ -45,9 +43,16 @@ export function setupMathJaxPlugin(api) {
       container.style.borderRadius = 'var(--radius-md)';
       container.style.overflowX = 'auto';
       container.style.textAlign = 'center';
-      
-      const syntax = question.mathSyntax || 'E = mc^2';
-      container.innerHTML = `\\[ ${escapeHtml(syntax)} \\]`;
+
+      const syntax = question.mathSyntax || '';
+      if (!syntax.trim()) {
+        container.style.color = 'var(--text-tertiary)';
+        container.style.fontStyle = 'italic';
+        container.style.fontSize = 'var(--font-sm)';
+        container.textContent = 'No equation set. Edit this question to add LaTeX.';
+        return container;
+      }
+      container.textContent = `\\[ ${syntax} \\]`;
 
       // Trigger MathJax typeset
       loadMathJax().then(() => {

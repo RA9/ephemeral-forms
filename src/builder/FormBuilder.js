@@ -376,6 +376,17 @@ export async function renderFormBuilder(container, formId) {
       `;
     }
 
+    if (q.type === 'mathjax_display') {
+      return `
+        <div class="mathjax-editor" data-id="${q.id}">
+          <label style="font-size:var(--font-xs);color:var(--text-secondary);margin-bottom:var(--space-2);display:block;">LaTeX Expression</label>
+          <textarea class="textarea mathjax-syntax-input" data-id="${q.id}" data-field="mathSyntax"
+            rows="3" placeholder="e.g. \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}" style="font-family:monospace;font-size:var(--font-sm);">${escapeHtml(q.mathSyntax || '')}</textarea>
+          <div class="mathjax-preview-hint" style="font-size:var(--font-xs);color:var(--text-tertiary);margin-top:var(--space-2);">Use LaTeX syntax. Preview in preview mode.</div>
+        </div>
+      `;
+    }
+
     // section_header options are now handled in the step header/footer, not here
     return '';
   };
