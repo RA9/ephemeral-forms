@@ -191,7 +191,7 @@ export async function renderFormBuilder(container, formId) {
         Save, Eye, Share2, Plus, GripVertical, Trash2, Settings, ChevronDown,
         Type, AlignLeft, CheckSquare, List, Circle, ArrowUpCircle, Calendar,
         Clock, Upload, Layout, Edit2, Copy, X, Square, ChevronRight, FileText,
-        Sigma, Hash, ArrowRight, CornerDownRight
+        Sigma, Hash, ArrowRight, CornerDownRight, Sparkles, Loader
       }
     });
   };
