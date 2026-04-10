@@ -75,11 +75,11 @@ export function renderDocs(container) {
           <div class="docs-content">
             <section id="docs-intro" class="docs-section">
               <h2>Welcome to Ephemeral Forms</h2>
-              <p>Ephemeral Forms is a zero-login, offline-first form builder running purely in your browser. All of your data is stored locally in IndexedDB.</p>
+              <p>Ephemeral Forms is a zero-login form builder. Create forms, share them with anyone, and collect responses — all without creating an account.</p>
 
               <div class="docs-callout">
-                <h4>Privacy First</h4>
-                <p>No data is ever sent to a server unless you specifically export it or write a custom plugin to do so.</p>
+                <h4>No Account Required</h4>
+                <p>Your forms and responses are synced so you can access them from any device. A simple passphrase is all you need — no email, no password, no sign-up.</p>
               </div>
             </section>
 

@@ -82,10 +82,10 @@ function renderPage(container, hasIdentity) {
       <!-- ===== HERO ===== -->
       <section class="lp-hero">
         <div class="lp-hero-body">
-          <h1 class="lp-hero-title">Build forms. Collect responses.<br>Keep everything private.</h1>
+          <h1 class="lp-hero-title">Build forms. Collect responses.<br>No account needed.</h1>
           <p class="lp-hero-sub">
-            A form builder that works offline and stores data in your browser.
-            No accounts, no tracking, no servers between you and your respondents.
+            A form builder that just works. No sign-ups, no tracking, no
+            barriers between you and your respondents.
           </p>
           <div class="lp-hero-actions">
             ${hasIdentity
