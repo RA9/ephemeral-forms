@@ -123,7 +123,7 @@ export async function renderFormAnalytics(container, formId) {
   const form = await getForm(formId);
   if (!form) {
     showToast('Form not found', 'error');
-    navigateTo('/');
+    navigateTo('/dashboard');
     return;
   }
 
@@ -516,7 +516,7 @@ export async function renderFormAnalytics(container, formId) {
   // ============================================================
 
   const bindEvents = () => {
-    container.querySelector('#back-btn')?.addEventListener('click', () => navigateTo('/'));
+    container.querySelector('#back-btn')?.addEventListener('click', () => navigateTo('/dashboard'));
     container.querySelector('#edit-form-btn')?.addEventListener('click', () => navigateTo(`/build/${formId}`));
 
     container.querySelector('#share-form-btn')?.addEventListener('click', async () => { await showShareModal(form); });

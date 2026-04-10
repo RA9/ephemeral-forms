@@ -15,7 +15,7 @@ export async function renderFormBuilder(container, formId) {
     form = await getForm(formId);
     if (!form) {
       showToast('Form not found', 'error');
-      navigateTo('/');
+      navigateTo('/dashboard');
       return;
     }
   } else {
