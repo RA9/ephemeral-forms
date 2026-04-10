@@ -2,7 +2,7 @@ import { InferenceClient } from '@huggingface/inference';
 import { v4 as uuidv4 } from 'uuid';
 
 const HF_TOKEN = import.meta.env.VITE_HF_TOKEN;
-const MODEL = 'google/gemma-3-1b-it';
+const MODEL = 'mistralai/Mistral-7B-Instruct-v0.3';
 
 // Rate limiting: max 10 generations per hour per session
 const RATE_LIMIT = 10;
