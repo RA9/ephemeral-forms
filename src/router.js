@@ -18,7 +18,8 @@ export function navigateTo(path) {
 }
 
 export function getCurrentPath() {
-  return window.location.hash.slice(1) || '/';
+  const raw = window.location.hash.slice(1) || '/';
+  return raw.split('?')[0];
 }
 
 function matchRoute(path) {

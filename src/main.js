@@ -35,9 +35,15 @@ import { renderLandingPage } from './landing/Landing.js';
 // ---- Google Analytics ----
 const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 if (GA_ID) {
-  const gaScript = document.querySelector('script[src*="GA_MEASUREMENT_ID"]');
-  if (gaScript) gaScript.src = gaScript.src.replace('GA_MEASUREMENT_ID', GA_ID);
-  window.gtag?.('config', GA_ID, { send_page_view: false });
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+  document.head.appendChild(script);
+
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { window.dataLayer.push(arguments); };
+  window.gtag('js', new Date());
+  window.gtag('config', GA_ID, { send_page_view: false });
 }
 
 function trackPageView(path) {

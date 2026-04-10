@@ -1,10 +1,11 @@
 import { Chart, registerables } from 'chart.js';
-import { createIcons, FileText, BarChart3, TrendingUp, Plus, Search, Edit2, Share2, Copy, Trash2 } from 'lucide';
+import { createIcons, FileText, BarChart3, TrendingUp, Plus, Search, Edit2, Share2, Copy, Trash2, Sparkles } from 'lucide';
 import { listForms, deleteForm, duplicateForm, getForm } from '../storage/formStore.js';
 import { getResponseCount, getResponseStats } from '../storage/responseStore.js';
 import { showToast, showConfirm, formatDate, formatNumber, escapeHtml, escapeAttr } from '../utils.js';
 import { navigateTo } from '../router.js';
 import { showShareModal } from '../sharing/ShareModal.js';
+import { isAIAvailable } from '../ai/formGenerator.js';
 
 Chart.register(...registerables);
 
@@ -30,9 +31,16 @@ export async function renderDashboard(container) {
           <h1 class="page-title">Dashboard</h1>
           <p class="page-subtitle">Manage your forms and track responses</p>
         </div>
-        <button class="btn btn-primary" id="create-form-btn">
-          <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 8px;"></i> Create Form
-        </button>
+        <div style="display:flex;gap:var(--space-3);">
+          ${isAIAvailable() ? `
+          <button class="btn btn-ai" id="ai-create-btn">
+            <i data-lucide="sparkles" style="width: 18px; height: 18px; margin-right: 8px;"></i> AI Generate
+          </button>
+          ` : ''}
+          <button class="btn btn-primary" id="create-form-btn">
+            <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 8px;"></i> Create Form
+          </button>
+        </div>
       </div>
 
       <div class="dashboard-stats grid grid-3">
@@ -102,7 +110,8 @@ export async function renderDashboard(container) {
       Edit2,
       Share2,
       Copy,
-      Trash2
+      Trash2,
+      Sparkles
     }
   });
 
@@ -111,6 +120,7 @@ export async function renderDashboard(container) {
   // Bind events
   container.querySelector('#create-form-btn')?.addEventListener('click', () => navigateTo('/build'));
   container.querySelector('#create-form-empty')?.addEventListener('click', () => navigateTo('/build'));
+  container.querySelector('#ai-create-btn')?.addEventListener('click', () => navigateTo('/build?ai=1'));
 
   // Search
   container.querySelector('#form-search')?.addEventListener('input', (e) => {

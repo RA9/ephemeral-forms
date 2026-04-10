@@ -9,6 +9,7 @@ import { getLinkStatus, resyncSharedForm } from '../firebase/shareService.js';
 import { isAIAvailable, generateForm, getAIUsage } from '../ai/formGenerator.js';
 
 export async function renderFormBuilder(container, formId) {
+  const openAI = window.location.hash.includes('ai=1');
   let form;
 
   if (formId) {
@@ -851,4 +852,14 @@ export async function renderFormBuilder(container, formId) {
   };
 
   render();
+
+  // Auto-open AI modal if navigated with ?ai=1
+  if (openAI && isAIAvailable()) {
+    const aiModal = container.querySelector('#ai-modal');
+    if (aiModal) {
+      aiModal.style.display = 'flex';
+      container.querySelector('#ai-prompt')?.focus();
+      createIcons({ icons: { Sparkles, X, Loader } });
+    }
+  }
 }
