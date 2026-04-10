@@ -562,14 +562,16 @@ export async function renderFormBuilder(container, formId) {
       createIcons({ icons: { Loader } });
 
       try {
-        const newQuestions = await generateForm(prompt, (_delta, full) => {
+        const result = await generateForm(prompt, (_delta, full) => {
           streamText.textContent = full;
           streamText.scrollTop = streamText.scrollHeight;
         });
-        questions.push(...newQuestions);
+        if (result.title) form.title = result.title;
+        if (result.description) form.description = result.description;
+        questions.push(...result.questions);
         closeAI();
         render();
-        showToast(`Added ${newQuestions.length} questions from AI`, 'success');
+        showToast(`Added ${result.questions.length} questions from AI`, 'success');
         autoSave();
         updateAIUsage();
       } catch (err) {

@@ -61,7 +61,14 @@ function checkRateLimit() {
   return { allowed: true };
 }
 
-const SYSTEM_PROMPT = `You are a form builder AI. Given a user's description, generate a JSON array of form questions.
+const SYSTEM_PROMPT = `You are a form builder AI. Given a user's description, generate a JSON object with a form title, description, and questions.
+
+Respond with a JSON object:
+{
+  "title": "Short form title",
+  "description": "Brief one-line description of the form's purpose",
+  "questions": [ ... ]
+}
 
 Each question object must have:
 - "type": one of "short_text", "long_text", "multiple_choice", "checkboxes", "dropdown", "linear_scale", "date", "time", "section_header"
@@ -75,7 +82,7 @@ Type-specific fields:
 - linear_scale: "scaleMin" (number), "scaleMax" (number), "lowLabel" (string), "highLabel" (string)
 - section_header: "sectionTitle" (string), "sectionDesc" (string, optional)
 
-Do NOT think or reason. Respond ONLY with a valid JSON array. No markdown, no explanation, no wrapping, no <think> tags.`;
+Do NOT think or reason. Respond ONLY with valid JSON. No markdown, no explanation, no wrapping, no <think> tags.`;
 
 export function isAIAvailable() {
   return !!HF_TOKEN;
@@ -121,10 +128,10 @@ export async function generateForm(description, onChunk) {
     }
   }
 
-  return parseQuestions(fullText);
+  return parseResponse(fullText);
 }
 
-function parseQuestions(raw) {
+function parseResponse(raw) {
   // Strip <think>...</think> blocks (Qwen3 thinking mode)
   let cleaned = raw.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
@@ -132,37 +139,54 @@ function parseQuestions(raw) {
   const fenceMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenceMatch) cleaned = fenceMatch[1].trim();
 
-  // Find array boundaries
-  const start = cleaned.indexOf('[');
-  const end = cleaned.lastIndexOf(']');
-  if (start === -1 || end === -1) throw new Error('AI did not return valid form data. Please try rephrasing.');
+  // Try parsing as object first (new format), fall back to array (legacy)
+  let title = '';
+  let description = '';
+  let arr;
 
-  const arr = JSON.parse(cleaned.slice(start, end + 1));
-  if (!Array.isArray(arr)) throw new Error('AI did not return a question list.');
+  const objStart = cleaned.indexOf('{');
+  const objEnd = cleaned.lastIndexOf('}');
+  if (objStart !== -1 && objEnd > objStart) {
+    try {
+      const obj = JSON.parse(cleaned.slice(objStart, objEnd + 1));
+      if (obj.questions && Array.isArray(obj.questions)) {
+        title = obj.title || '';
+        description = obj.description || '';
+        arr = obj.questions;
+      }
+    } catch { /* fall through to array parsing */ }
+  }
 
-  return arr.map(q => ({
+  if (!arr) {
+    const arrStart = cleaned.indexOf('[');
+    const arrEnd = cleaned.lastIndexOf(']');
+    if (arrStart === -1 || arrEnd === -1) throw new Error('AI did not return valid form data. Please try rephrasing.');
+    arr = JSON.parse(cleaned.slice(arrStart, arrEnd + 1));
+    if (!Array.isArray(arr)) throw new Error('AI did not return a question list.');
+  }
+
+  const questions = arr.map(q => ({
     id: uuidv4(),
     type: q.type || 'short_text',
     label: q.label || '',
     helpText: q.helpText || '',
     required: !!q.required,
     placeholder: q.placeholder || '',
-    // Multiple choice / checkboxes / dropdown
     ...(q.options ? {
       options: q.options.map(o => typeof o === 'string' ? o : (o.value || o.text || '')),
       allowOther: !!q.allowOther,
     } : {}),
-    // Linear scale
     ...(q.type === 'linear_scale' ? {
       scaleMin: q.scaleMin ?? 1,
       scaleMax: q.scaleMax ?? 5,
       lowLabel: q.lowLabel || '',
       highLabel: q.highLabel || '',
     } : {}),
-    // Section header
     ...(q.type === 'section_header' ? {
       sectionTitle: q.sectionTitle || q.label || '',
       sectionDesc: q.sectionDesc || '',
     } : {}),
   }));
+
+  return { title, description, questions };
 }
