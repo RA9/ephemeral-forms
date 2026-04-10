@@ -32,6 +32,20 @@ import './plugins/builtins/formStepperPlugin.js';
 import './landing/styles.css';
 import { renderLandingPage } from './landing/Landing.js';
 
+// ---- Google Analytics ----
+const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
+if (GA_ID) {
+  const gaScript = document.querySelector('script[src*="GA_MEASUREMENT_ID"]');
+  if (gaScript) gaScript.src = gaScript.src.replace('GA_MEASUREMENT_ID', GA_ID);
+  window.gtag?.('config', GA_ID, { send_page_view: false });
+}
+
+function trackPageView(path) {
+  if (GA_ID && window.gtag) {
+    window.gtag('event', 'page_view', { page_path: path });
+  }
+}
+
 const appElement = document.getElementById('app');
 
 // Initialize App
@@ -108,19 +122,21 @@ async function init() {
 
   // Start Router
   startRouter();
+  trackPageView(window.location.hash.replace('#', '') || '/');
 }
 
-// Global responder mode CSS cleanup
+// Global responder mode CSS cleanup + analytics
 window.addEventListener('hashchange', () => {
+  const hash = window.location.hash;
   const shell = document.querySelector('.app-shell');
   if (shell) {
-    const hash = window.location.hash;
     if ((hash.startsWith('#/form/') && !hash.endsWith('/responses')) || hash.startsWith('#/share/') || hash === '#/docs') {
       shell.classList.add('responder-mode');
     } else {
       shell.classList.remove('responder-mode');
     }
   }
+  trackPageView(hash.replace('#', '') || '/');
 });
 
 // PWA Service Worker Registration
