@@ -7,6 +7,8 @@ import { navigateTo } from '../router.js';
 import { showShareModal } from '../sharing/ShareModal.js';
 import { getLinkStatus, resyncSharedForm } from '../firebase/shareService.js';
 import { isAIAvailable, generateForm, getAIUsage } from '../ai/formGenerator.js';
+import { processImageFile } from '../firebase/imageService.js';
+import { Image as ImageIcon } from 'lucide';
 
 export async function renderFormBuilder(container, formId) {
   const openAI = window.location.hash.includes('ai=1');
@@ -137,6 +139,23 @@ export async function renderFormBuilder(container, formId) {
           <div class="builder-sidebar-section">
             <h4 class="builder-sidebar-title">Form Settings</h4>
             <div class="settings-group">
+              <label class="settings-label">Cover Image</label>
+              <div class="cover-image-upload" id="cover-upload-area">
+                ${form.coverImage
+                  ? `<div class="cover-image-preview">
+                      <img src="${escapeHtml(form.coverImage)}" alt="Cover" class="cover-image-thumb" />
+                      <button class="cover-image-remove" id="remove-cover" title="Remove cover image"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
+                    </div>`
+                  : `<div class="cover-image-placeholder" id="cover-placeholder">
+                      <i data-lucide="image" style="width:24px;height:24px;color:var(--text-tertiary);"></i>
+                      <span>Click or drag to upload</span>
+                      <span class="cover-image-hint">JPEG, PNG, WebP, GIF — max 2 MB</span>
+                    </div>`
+                }
+                <input type="file" id="cover-file-input" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none;" />
+              </div>
+            </div>
+            <div class="settings-group">
               <label class="settings-label">Theme Color</label>
               <input type="color" class="color-picker" id="theme-color" value="${form.settings.themeColor || '#6c5ce7'}" />
             </div>
@@ -194,7 +213,8 @@ export async function renderFormBuilder(container, formId) {
         Save, Eye, Share2, Plus, GripVertical, Trash2, Settings, ChevronDown,
         Type, AlignLeft, CheckSquare, List, Circle, ArrowUpCircle, Calendar,
         Clock, Upload, Layout, Edit2, Copy, X, Square, ChevronRight, FileText,
-        Sigma, Hash, ArrowRight, CornerDownRight, Sparkles, Loader
+        Sigma, Hash, ArrowRight, CornerDownRight, Sparkles, Loader,
+        Image: ImageIcon
       }
     });
   };
@@ -561,6 +581,41 @@ export async function renderFormBuilder(container, formId) {
       }
     });
 
+    // ---- Cover Image ----
+    const coverInput = container.querySelector('#cover-file-input');
+    const coverArea = container.querySelector('#cover-upload-area');
+    const handleCoverFile = async (file) => {
+      if (!file) return;
+      try {
+        coverArea.classList.add('cover-uploading');
+        const dataUrl = await processImageFile(file);
+        form.coverImage = dataUrl;
+        await saveForm(true);
+        render();
+        showToast('Cover image added', 'success');
+      } catch (err) {
+        showToast(err.message || 'Failed to process image', 'error');
+        coverArea.classList.remove('cover-uploading');
+      }
+    };
+    container.querySelector('#cover-placeholder')?.addEventListener('click', () => coverInput?.click());
+    container.querySelector('.cover-image-thumb')?.addEventListener('click', () => coverInput?.click());
+    coverInput?.addEventListener('change', (e) => handleCoverFile(e.target.files[0]));
+    coverArea?.addEventListener('dragover', (e) => { e.preventDefault(); coverArea.classList.add('cover-dragover'); });
+    coverArea?.addEventListener('dragleave', () => coverArea.classList.remove('cover-dragover'));
+    coverArea?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      coverArea.classList.remove('cover-dragover');
+      handleCoverFile(e.dataTransfer.files[0]);
+    });
+    container.querySelector('#remove-cover')?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      form.coverImage = '';
+      await saveForm(true);
+      render();
+      showToast('Cover image removed', 'success');
+    });
+
     // ---- Settings ----
     container.querySelector('#theme-color')?.addEventListener('input', (e) => {
       form.settings.themeColor = e.target.value;
@@ -835,6 +890,7 @@ export async function renderFormBuilder(container, formId) {
       description: form.description,
       questions: form.questions,
       settings: form.settings,
+      coverImage: form.coverImage || '',
     });
     if (!silent) showToast('Form saved!', 'success');
 

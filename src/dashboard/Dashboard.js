@@ -1,5 +1,5 @@
 import { Chart, registerables } from 'chart.js';
-import { createIcons, FileText, BarChart3, TrendingUp, Plus, Search, Edit2, Share2, Copy, Trash2, Sparkles } from 'lucide';
+import { createIcons, FileText, BarChart3, TrendingUp, Plus, Search, Edit2, Share2, Copy, Trash2, Sparkles, Image as ImageIcon } from 'lucide';
 import { listForms, deleteForm, duplicateForm, getForm } from '../storage/formStore.js';
 import { getResponseCount, getResponseStats } from '../storage/responseStore.js';
 import { showToast, showConfirm, formatDate, formatNumber, escapeHtml, escapeAttr } from '../utils.js';
@@ -111,7 +111,8 @@ export async function renderDashboard(container) {
       Share2,
       Copy,
       Trash2,
-      Sparkles
+      Sparkles,
+      Image: ImageIcon
     }
   });
 
@@ -218,7 +219,10 @@ function renderFormCard(form) {
 
   return `
     <div class="form-card card" data-form-id="${form.id}" data-title="${escapeAttr(form.title)}" style="cursor:pointer;">
-      <div class="form-card-accent" style="background: ${themeColor}"></div>
+      ${form.coverImage
+        ? `<div class="form-card-cover"><img src="${escapeAttr(form.coverImage)}" alt="" class="form-card-cover-img" /></div>`
+        : `<div class="form-card-accent" style="background: ${themeColor}"></div>`
+      }
       <div class="form-card-body">
         <h4 class="form-card-title">${escapeHtml(form.title || 'Untitled Form')}</h4>
         <p class="form-card-desc">${escapeHtml(form.description || 'No description')}</p>

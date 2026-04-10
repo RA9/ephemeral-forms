@@ -36,6 +36,22 @@
   min-width: 0;
 }
 
+#builder-back {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+#builder-back:hover {
+  color: var(--text-primary);
+  border-color: var(--border-default);
+  background: var(--surface-hover);
+}
+
 .builder-title-area {
   display: flex;
   flex-direction: column;
@@ -143,6 +159,72 @@
 .settings-label { display: block; font-size: var(--font-xs); font-weight: var(--font-weight-medium); color: var(--text-secondary); margin-bottom: var(--space-2); }
 .settings-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) 0; }
 .color-picker { width: 100%; height: 36px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); cursor: pointer; padding: 2px; }
+
+/* --- Cover Image Upload --- */
+.cover-image-upload {
+  border: 2px dashed var(--border-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color 0.2s, background 0.2s;
+}
+.cover-image-upload.cover-dragover {
+  border-color: var(--primary-500);
+  background: color-mix(in srgb, var(--primary-500) 5%, transparent);
+}
+.cover-image-upload.cover-uploading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.cover-image-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-3);
+  cursor: pointer;
+  text-align: center;
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+.cover-image-placeholder:hover {
+  color: var(--text-secondary);
+  background: var(--surface-hover);
+}
+.cover-image-hint {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+.cover-image-preview {
+  position: relative;
+}
+.cover-image-thumb {
+  display: block;
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.cover-image-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s;
+}
+.cover-image-remove:hover {
+  background: rgba(220, 50, 50, 0.85);
+}
 
 /* --- Question area --- */
 .builder-questions {

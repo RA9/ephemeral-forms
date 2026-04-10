@@ -190,25 +190,34 @@ function renderPage(container, hasIdentity) {
       <!-- ===== HOW IT WORKS ===== -->
       <section class="lp-how">
         <div class="lp-section-head">
-          <h2 class="lp-section-title">How it works</h2>
+          <h2 class="lp-section-title">Three steps. Zero friction.</h2>
+          <p class="lp-section-sub">From idea to live form in under a minute.</p>
         </div>
-        <div class="lp-steps">
-          <div class="lp-step reveal">
-            <div class="lp-step-num">1</div>
-            <h3 class="lp-step-title">Describe</h3>
-            <p class="lp-step-desc">Tell the AI what form you need, or build it manually with drag & drop.</p>
+        <div class="lp-steps-track">
+          <div class="lp-steps-line" aria-hidden="true"></div>
+          <div class="lp-step-card reveal">
+            <div class="lp-step-card-icon" style="--step-color: #a855f7; --step-bg: rgba(168,85,247,0.1);">
+              <i data-lucide="sparkles"></i>
+            </div>
+            <div class="lp-step-card-num">01</div>
+            <h3 class="lp-step-card-title">Describe your form</h3>
+            <p class="lp-step-card-desc">Type what you need in plain English — "a feedback survey with ratings and comments" — and the AI builds the entire form. Or go manual with drag & drop.</p>
           </div>
-          <div class="lp-step-divider"></div>
-          <div class="lp-step reveal">
-            <div class="lp-step-num">2</div>
-            <h3 class="lp-step-title">Share</h3>
-            <p class="lp-step-desc">Generate a magic link. Edits sync to respondents in real-time.</p>
+          <div class="lp-step-card reveal">
+            <div class="lp-step-card-icon" style="--step-color: #00b894; --step-bg: rgba(0,184,148,0.1);">
+              <i data-lucide="share-2"></i>
+            </div>
+            <div class="lp-step-card-num">02</div>
+            <h3 class="lp-step-card-title">Share a magic link</h3>
+            <p class="lp-step-card-desc">One click generates a shareable link. Respondents don't need an account. Edit your form anytime — changes sync to the live link instantly.</p>
           </div>
-          <div class="lp-step-divider"></div>
-          <div class="lp-step reveal">
-            <div class="lp-step-num">3</div>
-            <h3 class="lp-step-title">Analyze</h3>
-            <p class="lp-step-desc">View response charts, track completions, and manage from any device.</p>
+          <div class="lp-step-card reveal">
+            <div class="lp-step-card-icon" style="--step-color: #e17055; --step-bg: rgba(225,112,85,0.1);">
+              <i data-lucide="bar-chart-2"></i>
+            </div>
+            <div class="lp-step-card-num">03</div>
+            <h3 class="lp-step-card-title">See results in real-time</h3>
+            <p class="lp-step-card-desc">Responses stream into your dashboard with charts, completion rates, and per-question breakdowns. Manage everything from any device.</p>
           </div>
         </div>
       </section>
