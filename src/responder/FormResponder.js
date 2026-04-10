@@ -110,10 +110,13 @@ export async function renderFormResponder(container, formId) {
     const pageTitle = sectionHeader?.sectionTitle || sectionHeader?.label || null;
     const pageDesc = sectionHeader?.sectionDesc || null;
 
+    const coverImg = form.coverImage || '';
+
     container.innerHTML = `
       <div class="rfp">
         <!-- Hero Header -->
-        <div class="rfp-hero" style="background: ${themeColor}">
+        <div class="rfp-hero ${coverImg ? 'rfp-hero--cover' : ''}" style="background: ${themeColor}">
+          ${coverImg ? `<img src="${coverImg}" alt="" class="rfp-hero-cover-img" />` : ''}
           <div class="rfp-hero-inner">
             <div class="rfp-brand-badge">✦ Ephemeral Forms</div>
             <div class="rfp-hero-content">

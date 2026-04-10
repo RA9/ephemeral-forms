@@ -138,9 +138,12 @@ export async function renderSharedFormResponder(container, token) {
       return sh?.sectionTitle || sh?.label || `Step ${i + 1}`;
     });
 
+    const coverImg = form.coverImage || '';
+
     container.innerHTML = `
       <div class="rfp">
-        <div class="rfp-hero" style="background: ${themeColor}">
+        <div class="rfp-hero ${coverImg ? 'rfp-hero--cover' : ''}" style="background: ${themeColor}">
+          ${coverImg ? `<img src="${escapeHtml(coverImg)}" alt="" class="rfp-hero-cover-img" />` : ''}
           <div class="rfp-hero-inner" style="position:relative;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <div class="rfp-brand-badge"><svg viewBox="0 0 32 32" width="14" height="14" style="vertical-align:-2px;margin-right:4px;"><rect width="32" height="32" rx="8" fill="#6c5ce7"/><text x="16" y="23" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="white">ef</text></svg> Ephemeral Forms</div>

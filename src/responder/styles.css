@@ -26,6 +26,30 @@
   pointer-events: none;
 }
 
+/* Cover image hero variant */
+.rfp-hero-cover-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+.rfp-hero--cover::before {
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.6) 100%);
+  z-index: 1;
+}
+.rfp-hero--cover .rfp-hero-inner,
+.rfp-hero--cover .rfp-hero-wave {
+  position: relative;
+  z-index: 2;
+}
+.rfp-hero--cover {
+  padding-top: var(--space-10);
+  min-height: 200px;
+}
+
 .rfp-hero-inner {
   position: relative;
   max-width: 680px;
