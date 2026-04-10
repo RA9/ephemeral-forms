@@ -21,7 +21,8 @@ export async function renderFormBuilder(container, formId) {
     }
   } else {
     form = await createForm();
-    navigateTo(`/build/${form.id}`);
+    // Update URL without triggering re-route
+    history.replaceState(null, '', `#/build/${form.id}`);
     formId = form.id;
   }
 

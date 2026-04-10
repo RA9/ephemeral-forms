@@ -71,7 +71,7 @@ Each question object must have:
 
 Type-specific fields:
 - short_text / long_text: "placeholder" (string)
-- multiple_choice / checkboxes / dropdown: "options" (array of {"id": unique string, "value": text}), "allowOther" (boolean, default false)
+- multiple_choice / checkboxes / dropdown: "options" (array of plain strings, e.g. ["Option A", "Option B"]), "allowOther" (boolean, default false)
 - linear_scale: "scaleMin" (number), "scaleMax" (number), "lowLabel" (string), "highLabel" (string)
 - section_header: "sectionTitle" (string), "sectionDesc" (string, optional)
 
@@ -149,10 +149,7 @@ function parseQuestions(raw) {
     placeholder: q.placeholder || '',
     // Multiple choice / checkboxes / dropdown
     ...(q.options ? {
-      options: q.options.map(o => ({
-        id: o.id || uuidv4(),
-        value: o.value || o.text || '',
-      })),
+      options: q.options.map(o => typeof o === 'string' ? o : (o.value || o.text || '')),
       allowOther: !!q.allowOther,
     } : {}),
     // Linear scale
