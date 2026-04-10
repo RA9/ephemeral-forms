@@ -1,11 +1,12 @@
 import Sortable from 'sortablejs';
-import { createIcons, Save, Eye, Share2, Plus, GripVertical, Trash2, Settings, ChevronDown, Type, AlignLeft, CheckSquare, List, Circle, ArrowUpCircle, Calendar, Clock, Upload, Layout, Edit2, Copy, X, Square, ChevronRight, FileText, Sigma, Hash, ArrowRight, CornerDownRight } from 'lucide';
+import { createIcons, Save, Eye, Share2, Plus, GripVertical, Trash2, Settings, ChevronDown, Type, AlignLeft, CheckSquare, List, Circle, ArrowUpCircle, Calendar, Clock, Upload, Layout, Edit2, Copy, X, Square, ChevronRight, FileText, Sigma, Hash, ArrowRight, CornerDownRight, Sparkles, Loader } from 'lucide';
 import { createQuestion, getAllQuestionTypes, getQuestionType } from './questionTypes.js';
 import { createForm, getForm, updateForm } from '../storage/formStore.js';
 import { showToast, deepClone, escapeHtml } from '../utils.js';
 import { navigateTo } from '../router.js';
 import { showShareModal } from '../sharing/ShareModal.js';
 import { getLinkStatus, resyncSharedForm } from '../firebase/shareService.js';
+import { isAIAvailable, generateForm } from '../ai/formGenerator.js';
 
 export async function renderFormBuilder(container, formId) {
   let form;
@@ -97,6 +98,11 @@ export async function renderFormBuilder(container, formId) {
               </div>
             </div>
             <div class="builder-header-right">
+              ${isAIAvailable() ? `
+              <button class="btn btn-ai btn-sm" id="ai-generate-btn">
+                <i data-lucide="sparkles" style="margin-right: 6px;"></i> AI Generate
+              </button>
+              ` : ''}
               <button class="btn btn-ghost btn-sm ${previewMode ? 'active' : ''}" id="toggle-preview">
                 <i data-lucide="${previewMode ? 'edit-2' : 'eye'}" style="margin-right: 8px;"></i>
                 ${previewMode ? 'Edit' : 'Preview'}
@@ -146,6 +152,31 @@ export async function renderFormBuilder(container, formId) {
           </div>
         </div>
         ` : ''}
+      </div>
+
+      <!-- AI Generate Modal -->
+      <div class="ai-modal-overlay" id="ai-modal" style="display:none;">
+        <div class="ai-modal">
+          <div class="ai-modal-header">
+            <div class="ai-modal-title"><i data-lucide="sparkles" style="width:18px;height:18px;"></i> AI Form Generator</div>
+            <button class="ai-modal-close" id="ai-modal-close"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+          </div>
+          <div class="ai-modal-body">
+            <label class="ai-modal-label">Describe the form you want to create</label>
+            <textarea class="textarea ai-prompt-input" id="ai-prompt" rows="4"
+              placeholder="e.g. A job application form with name, email, resume upload, work experience, and a cover letter"></textarea>
+            <div class="ai-stream-output" id="ai-stream" style="display:none;">
+              <div class="ai-stream-label"><i data-lucide="loader" style="width:14px;height:14px;" class="ai-spinner"></i> Generating form...</div>
+              <pre class="ai-stream-text" id="ai-stream-text"></pre>
+            </div>
+          </div>
+          <div class="ai-modal-footer">
+            <button class="btn btn-ghost btn-sm" id="ai-cancel">Cancel</button>
+            <button class="btn btn-primary btn-sm" id="ai-submit">
+              <i data-lucide="sparkles" style="width:14px;height:14px;margin-right:6px;"></i> Generate
+            </button>
+          </div>
+        </div>
       </div>
     `;
 
@@ -467,6 +498,50 @@ export async function renderFormBuilder(container, formId) {
     });
 
     container.querySelector('#save-form')?.addEventListener('click', saveForm);
+
+    // ---- AI Generate ----
+    const aiModal = container.querySelector('#ai-modal');
+    container.querySelector('#ai-generate-btn')?.addEventListener('click', () => {
+      aiModal.style.display = 'flex';
+      container.querySelector('#ai-prompt')?.focus();
+      createIcons({ icons: { Sparkles, X, Loader } });
+    });
+    const closeAI = () => { if (aiModal) aiModal.style.display = 'none'; };
+    container.querySelector('#ai-modal-close')?.addEventListener('click', closeAI);
+    container.querySelector('#ai-cancel')?.addEventListener('click', closeAI);
+    aiModal?.addEventListener('click', (e) => { if (e.target === aiModal) closeAI(); });
+
+    container.querySelector('#ai-submit')?.addEventListener('click', async () => {
+      const prompt = container.querySelector('#ai-prompt')?.value?.trim();
+      if (!prompt) { showToast('Please describe the form you want', 'error'); return; }
+
+      const submitBtn = container.querySelector('#ai-submit');
+      const streamEl = container.querySelector('#ai-stream');
+      const streamText = container.querySelector('#ai-stream-text');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;margin-right:6px;" class="ai-spinner"></i> Generating...';
+      streamEl.style.display = 'block';
+      streamText.textContent = '';
+      createIcons({ icons: { Loader } });
+
+      try {
+        const newQuestions = await generateForm(prompt, (_delta, full) => {
+          streamText.textContent = full;
+          streamText.scrollTop = streamText.scrollHeight;
+        });
+        questions.push(...newQuestions);
+        closeAI();
+        render();
+        showToast(`Added ${newQuestions.length} questions from AI`, 'success');
+        autoSave();
+      } catch (err) {
+        showToast(err.message || 'AI generation failed', 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i data-lucide="sparkles" style="width:14px;height:14px;margin-right:6px;"></i> Generate';
+        streamEl.style.display = 'none';
+        createIcons({ icons: { Sparkles } });
+      }
+    });
 
     // ---- Settings ----
     container.querySelector('#theme-color')?.addEventListener('input', (e) => {
