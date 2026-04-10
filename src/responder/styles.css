@@ -474,6 +474,10 @@
 .choice-option:hover {
   background: var(--primary-50);
   border-color: var(--primary-300);
+  color: var(--text-primary);
+}
+[data-theme="dark"] .choice-option:hover {
+  background: rgba(108, 92, 231, 0.1);
 }
 
 /* Hide native inputs */
@@ -513,6 +517,9 @@
   border-color: var(--primary-400);
   background: var(--primary-50);
 }
+[data-theme="dark"] .choice-option:has(input[type="radio"]:checked) {
+  background: rgba(108, 92, 231, 0.12);
+}
 
 /* Custom checkbox */
 .choice-checkbox {
@@ -548,6 +555,9 @@
 .choice-option:has(input[type="checkbox"]:checked) {
   border-color: var(--primary-400);
   background: var(--primary-50);
+}
+[data-theme="dark"] .choice-option:has(input[type="checkbox"]:checked) {
+  background: rgba(108, 92, 231, 0.12);
 }
 
 .choice-label { flex: 1; }
