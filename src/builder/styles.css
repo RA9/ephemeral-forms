@@ -168,6 +168,10 @@
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
+.step-group + .step-group {
+  margin-top: var(--space-4);
+}
+
 .step-group-has-header {
   border-left: 4px solid var(--step-color, var(--primary-500));
 }
