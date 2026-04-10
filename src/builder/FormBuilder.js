@@ -6,7 +6,7 @@ import { showToast, deepClone, escapeHtml } from '../utils.js';
 import { navigateTo } from '../router.js';
 import { showShareModal } from '../sharing/ShareModal.js';
 import { getLinkStatus, resyncSharedForm } from '../firebase/shareService.js';
-import { isAIAvailable, generateForm } from '../ai/formGenerator.js';
+import { isAIAvailable, generateForm, getAIUsage } from '../ai/formGenerator.js';
 
 export async function renderFormBuilder(container, formId) {
   let form;
@@ -171,6 +171,7 @@ export async function renderFormBuilder(container, formId) {
             </div>
           </div>
           <div class="ai-modal-footer">
+            <span class="ai-usage-badge" id="ai-usage"></span>
             <button class="btn btn-ghost btn-sm" id="ai-cancel">Cancel</button>
             <button class="btn btn-primary btn-sm" id="ai-submit">
               <i data-lucide="sparkles" style="width:14px;height:14px;margin-right:6px;"></i> Generate
@@ -501,8 +502,22 @@ export async function renderFormBuilder(container, formId) {
 
     // ---- AI Generate ----
     const aiModal = container.querySelector('#ai-modal');
+    const updateAIUsage = () => {
+      const badge = container.querySelector('#ai-usage');
+      if (!badge) return;
+      const { remaining, limit } = getAIUsage();
+      badge.textContent = `${remaining}/${limit} left today`;
+      badge.classList.toggle('ai-usage-low', remaining <= 1);
+      badge.classList.toggle('ai-usage-zero', remaining === 0);
+      const submitBtn = container.querySelector('#ai-submit');
+      if (submitBtn && remaining === 0) {
+        submitBtn.disabled = true;
+        submitBtn.title = 'Daily limit reached';
+      }
+    };
     container.querySelector('#ai-generate-btn')?.addEventListener('click', () => {
       aiModal.style.display = 'flex';
+      updateAIUsage();
       container.querySelector('#ai-prompt')?.focus();
       createIcons({ icons: { Sparkles, X, Loader } });
     });
@@ -534,6 +549,7 @@ export async function renderFormBuilder(container, formId) {
         render();
         showToast(`Added ${newQuestions.length} questions from AI`, 'success');
         autoSave();
+        updateAIUsage();
       } catch (err) {
         showToast(err.message || 'AI generation failed', 'error');
         submitBtn.disabled = false;

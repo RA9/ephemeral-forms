@@ -710,10 +710,23 @@
 .ai-modal-footer {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-6);
   border-top: 1px solid var(--border-light);
+}
+
+.ai-usage-badge {
+  margin-right: auto;
+  font-size: var(--font-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+.ai-usage-badge.ai-usage-low {
+  color: var(--warning, #e67e22);
+}
+.ai-usage-badge.ai-usage-zero {
+  color: var(--error);
 }
 
 @media (max-width: 540px) {

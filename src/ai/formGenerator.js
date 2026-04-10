@@ -5,20 +5,59 @@ const HF_TOKEN = import.meta.env.VITE_HF_TOKEN;
 const MODEL = 'Qwen/Qwen3-8B';
 const PROVIDER = 'fireworks-ai';
 
-// Rate limiting: max 10 generations per hour per session
-const RATE_LIMIT = 10;
-const RATE_WINDOW_MS = 60 * 60 * 1000;
-const rateLedger = [];
+// Rate limiting
+const BURST_LIMIT = 10;           // max per hour (in-memory)
+const BURST_WINDOW_MS = 60 * 60 * 1000;
+const burstLedger = [];
+
+const DAILY_LIMIT = 5;            // max per day (persisted)
+const STORAGE_KEY = 'ef_ai_usage';
+
+function getDailyUsage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { date: '', count: 0 };
+    const data = JSON.parse(raw);
+    return data;
+  } catch { return { date: '', count: 0 }; }
+}
+
+function recordDailyUse() {
+  const today = new Date().toISOString().slice(0, 10);
+  const usage = getDailyUsage();
+  if (usage.date !== today) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today, count: 1 }));
+  } else {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: today, count: usage.count + 1 }));
+  }
+}
+
+export function getAIUsage() {
+  const today = new Date().toISOString().slice(0, 10);
+  const usage = getDailyUsage();
+  const used = usage.date === today ? usage.count : 0;
+  return { used, limit: DAILY_LIMIT, remaining: Math.max(0, DAILY_LIMIT - used) };
+}
 
 function checkRateLimit() {
+  // Daily limit (persistent)
+  const today = new Date().toISOString().slice(0, 10);
+  const usage = getDailyUsage();
+  const dailyUsed = usage.date === today ? usage.count : 0;
+  if (dailyUsed >= DAILY_LIMIT) {
+    return { allowed: false, message: `Daily limit reached (${DAILY_LIMIT}/${DAILY_LIMIT}). Resets tomorrow.` };
+  }
+
+  // Burst limit (in-memory)
   const now = Date.now();
-  while (rateLedger.length && rateLedger[0] < now - RATE_WINDOW_MS) {
-    rateLedger.shift();
+  while (burstLedger.length && burstLedger[0] < now - BURST_WINDOW_MS) {
+    burstLedger.shift();
   }
-  if (rateLedger.length >= RATE_LIMIT) {
-    const waitMin = Math.ceil((rateLedger[0] + RATE_WINDOW_MS - now) / 60000);
-    return { allowed: false, message: `Rate limit reached. Try again in ~${waitMin} min.` };
+  if (burstLedger.length >= BURST_LIMIT) {
+    const waitMin = Math.ceil((burstLedger[0] + BURST_WINDOW_MS - now) / 60000);
+    return { allowed: false, message: `Too many requests. Try again in ~${waitMin} min.` };
   }
+
   return { allowed: true };
 }
 
@@ -48,7 +87,8 @@ export async function generateForm(description, onChunk) {
   const limit = checkRateLimit();
   if (!limit.allowed) throw new Error(limit.message);
 
-  rateLedger.push(Date.now());
+  burstLedger.push(Date.now());
+  recordDailyUse();
 
   const client = new InferenceClient(HF_TOKEN);
 

@@ -1,4 +1,4 @@
-import { createIcons, Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon } from 'lucide';
+import { createIcons, Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon, Sparkles } from 'lucide';
 import { navigateTo } from '../router.js';
 import { getCreatorId, saveCreatorId, setWorkspaceSession } from '../storage/creatorStore.js';
 import { createCreator } from '../firebase/creatorService.js';
@@ -82,10 +82,10 @@ function renderPage(container, hasIdentity) {
       <!-- ===== HERO ===== -->
       <section class="lp-hero">
         <div class="lp-hero-body">
-          <h1 class="lp-hero-title">Build forms. Collect responses.<br>No account needed.</h1>
+          <h1 class="lp-hero-title">Describe it. We'll build it.<br>AI-powered forms in seconds.</h1>
           <p class="lp-hero-sub">
-            A form builder that just works. No sign-ups, no tracking, no
-            barriers between you and your respondents.
+            Just tell the AI what you need — a job application, feedback survey, or registration form — and
+            it generates the whole thing. No sign-ups, no barriers, no learning curve.
           </p>
           <div class="lp-hero-actions">
             ${hasIdentity
@@ -93,7 +93,7 @@ function renderPage(container, hasIdentity) {
               : '<button class="lp-btn-primary" id="landing-cta-main">Get Started <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></button>'
             }
           </div>
-          <p class="lp-hero-note">Free forever. No sign-up required.</p>
+          <p class="lp-hero-note">Free forever. No sign-up required. Powered by AI.</p>
         </div>
 
         <div class="lp-hero-visual" aria-hidden="true">
@@ -102,36 +102,34 @@ function renderPage(container, hasIdentity) {
               <div class="lp-mock-dot" style="background: #ff5f57;"></div>
               <div class="lp-mock-dot" style="background: #febc2e;"></div>
               <div class="lp-mock-dot" style="background: #28c840;"></div>
-              <span class="lp-mock-tab">Customer Feedback</span>
+              <span class="lp-mock-tab"><i data-lucide="sparkles" style="width:12px;height:12px;vertical-align:-1px;margin-right:4px;"></i>AI Form Generator</span>
             </div>
             <div class="lp-mock-body">
-              <div class="lp-mock-field lp-mock-field--active">
-                <div class="lp-mock-label">How was your experience?</div>
-                <div class="lp-mock-stars">
-                  <span class="lp-mock-star filled">&#9733;</span>
-                  <span class="lp-mock-star filled">&#9733;</span>
-                  <span class="lp-mock-star filled">&#9733;</span>
-                  <span class="lp-mock-star filled">&#9733;</span>
-                  <span class="lp-mock-star">&#9733;</span>
-                </div>
-              </div>
-              <div class="lp-mock-field">
-                <div class="lp-mock-label">What did you enjoy most?</div>
+              <div class="lp-mock-field lp-mock-field--active lp-mock-ai-prompt">
+                <div class="lp-mock-label" style="color: var(--primary-500); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">Prompt</div>
                 <div class="lp-mock-input">
-                  <span class="lp-mock-typing">The simplicity and speed...</span>
+                  <span class="lp-mock-typing">Create a job application form...</span>
                   <span class="lp-mock-cursor"></span>
                 </div>
               </div>
-              <div class="lp-mock-field">
-                <div class="lp-mock-label">Would you recommend us?</div>
+              <div class="lp-mock-ai-divider">
+                <span class="lp-mock-ai-badge"><i data-lucide="sparkles" style="width:10px;height:10px;"></i> Generated</span>
+              </div>
+              <div class="lp-mock-field lp-mock-ai-result">
+                <div class="lp-mock-label">Full Name</div>
+                <div class="lp-mock-input-line"></div>
+              </div>
+              <div class="lp-mock-field lp-mock-ai-result">
+                <div class="lp-mock-label">Years of Experience</div>
                 <div class="lp-mock-options">
-                  <span class="lp-mock-option selected">Yes</span>
-                  <span class="lp-mock-option">Maybe</span>
-                  <span class="lp-mock-option">No</span>
+                  <span class="lp-mock-option selected">1-3</span>
+                  <span class="lp-mock-option">3-5</span>
+                  <span class="lp-mock-option">5+</span>
                 </div>
               </div>
-              <div class="lp-mock-submit">
-                <div class="lp-mock-btn">Submit</div>
+              <div class="lp-mock-field lp-mock-ai-result">
+                <div class="lp-mock-label">Cover Letter</div>
+                <div class="lp-mock-input-line" style="height: 32px;"></div>
               </div>
             </div>
           </div>
@@ -145,46 +143,46 @@ function renderPage(container, hasIdentity) {
         </div>
         <div class="lp-features-grid">
           <div class="lp-feature-card reveal">
-            <div class="lp-feature-icon" style="--icon-color: #6c5ce7; --icon-bg: #6c5ce710;">
-              <i data-lucide="shield"></i>
+            <div class="lp-feature-icon" style="--icon-color: #a855f7; --icon-bg: #a855f710;">
+              <i data-lucide="sparkles"></i>
             </div>
-            <h3>Private by default</h3>
-            <p>Data stays in your browser. No cookies, no analytics, no third parties.</p>
+            <h3>AI-powered generation</h3>
+            <p>Describe your form in plain English and AI builds it for you — questions, types, and structure.</p>
           </div>
           <div class="lp-feature-card reveal">
             <div class="lp-feature-icon" style="--icon-color: #fdcb6e; --icon-bg: #fdcb6e12;">
               <i data-lucide="zap"></i>
             </div>
-            <h3>Fast</h3>
-            <p>Vanilla JS, no framework. Loads instantly, auto-saves every change.</p>
+            <h3>Instant & lightweight</h3>
+            <p>No heavy frameworks. Loads instantly, auto-saves every change, works anywhere.</p>
           </div>
           <div class="lp-feature-card reveal">
             <div class="lp-feature-icon" style="--icon-color: #00b894; --icon-bg: #00b89410;">
               <i data-lucide="share-2"></i>
             </div>
             <h3>Shareable links</h3>
-            <p>Generate a link, send it. Anyone can respond without creating an account.</p>
+            <p>Generate a magic link and share it. Respondents need no account. Updates sync in real-time.</p>
           </div>
           <div class="lp-feature-card reveal">
             <div class="lp-feature-icon" style="--icon-color: #74b9ff; --icon-bg: #74b9ff10;">
               <i data-lucide="layout"></i>
             </div>
-            <h3>Drag & drop</h3>
-            <p>Multi-step forms with sections, routing logic, and reordering.</p>
+            <h3>Drag & drop builder</h3>
+            <p>Multi-step forms with sections, conditional routing, and drag-to-reorder.</p>
           </div>
           <div class="lp-feature-card reveal">
             <div class="lp-feature-icon" style="--icon-color: #e17055; --icon-bg: #e1705510;">
               <i data-lucide="bar-chart-2"></i>
             </div>
-            <h3>Analytics</h3>
-            <p>Charts, completion rates, and word frequency — computed locally.</p>
+            <h3>Built-in analytics</h3>
+            <p>Charts, completion rates, and response insights — all in your dashboard.</p>
           </div>
           <div class="lp-feature-card reveal">
             <div class="lp-feature-icon" style="--icon-color: #a29bfe; --icon-bg: #a29bfe10;">
               <i data-lucide="puzzle"></i>
             </div>
-            <h3>Plugins</h3>
-            <p>Extend with star ratings, signatures, validators, and custom types.</p>
+            <h3>Plugin ecosystem</h3>
+            <p>Extend with star ratings, signatures, math equations, and custom question types.</p>
           </div>
         </div>
       </section>
@@ -197,20 +195,20 @@ function renderPage(container, hasIdentity) {
         <div class="lp-steps">
           <div class="lp-step reveal">
             <div class="lp-step-num">1</div>
-            <h3 class="lp-step-title">Design</h3>
-            <p class="lp-step-desc">Pick question types, add steps, set a theme.</p>
+            <h3 class="lp-step-title">Describe</h3>
+            <p class="lp-step-desc">Tell the AI what form you need, or build it manually with drag & drop.</p>
           </div>
           <div class="lp-step-divider"></div>
           <div class="lp-step reveal">
             <div class="lp-step-num">2</div>
             <h3 class="lp-step-title">Share</h3>
-            <p class="lp-step-desc">Generate a link. Anyone can fill it out.</p>
+            <p class="lp-step-desc">Generate a magic link. Edits sync to respondents in real-time.</p>
           </div>
           <div class="lp-step-divider"></div>
           <div class="lp-step reveal">
             <div class="lp-step-num">3</div>
             <h3 class="lp-step-title">Analyze</h3>
-            <p class="lp-step-desc">View charts, export CSV, manage from anywhere.</p>
+            <p class="lp-step-desc">View response charts, track completions, and manage from any device.</p>
           </div>
         </div>
       </section>
@@ -247,7 +245,7 @@ function renderPage(container, hasIdentity) {
     </div>
   `;
 
-  createIcons({ icons: { Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon } });
+  createIcons({ icons: { Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon, Sparkles } });
 
   // ---- Event Bindings ----
   container.querySelector('#landing-cta-nav').addEventListener('click', () => {

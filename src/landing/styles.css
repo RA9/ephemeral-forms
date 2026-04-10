@@ -410,6 +410,50 @@
   opacity: 0.85;
 }
 
+/* ---- Mock AI elements ---- */
+.lp-mock-ai-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+}
+.lp-mock-ai-divider::before,
+.lp-mock-ai-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-light);
+}
+.lp-mock-ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: var(--font-weight-semibold);
+  color: #a855f7;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.lp-mock-ai-result {
+  animation: lp-ai-appear 400ms ease both;
+}
+.lp-mock-ai-result:nth-child(4) { animation-delay: 200ms; }
+.lp-mock-ai-result:nth-child(5) { animation-delay: 400ms; }
+.lp-mock-ai-result:nth-child(6) { animation-delay: 600ms; }
+
+@keyframes lp-ai-appear {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.lp-mock-input-line {
+  height: 20px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+}
+
 /* ===== FEATURES ===== */
 .lp-features {
   padding: var(--space-16) var(--space-8);
