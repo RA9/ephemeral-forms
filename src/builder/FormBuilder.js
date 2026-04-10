@@ -465,7 +465,7 @@ export async function renderFormBuilder(container, formId) {
 
   const bindEvents = () => {
     // ---- Chrome ----
-    container.querySelector('#builder-back')?.addEventListener('click', () => navigateTo('/'));
+    container.querySelector('#builder-back')?.addEventListener('click', () => navigateTo('/dashboard'));
 
     container.querySelector('#form-title')?.addEventListener('input', (e) => {
       form.title = e.target.value;
