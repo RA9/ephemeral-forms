@@ -2,7 +2,8 @@ import { InferenceClient } from '@huggingface/inference';
 import { v4 as uuidv4 } from 'uuid';
 
 const HF_TOKEN = import.meta.env.VITE_HF_TOKEN;
-const MODEL = 'mistralai/Mistral-7B-Instruct-v0.3';
+const MODEL = 'Qwen/Qwen3-8B';
+const PROVIDER = 'fireworks-ai';
 
 // Rate limiting: max 10 generations per hour per session
 const RATE_LIMIT = 10;
@@ -35,7 +36,7 @@ Type-specific fields:
 - linear_scale: "scaleMin" (number), "scaleMax" (number), "lowLabel" (string), "highLabel" (string)
 - section_header: "sectionTitle" (string), "sectionDesc" (string, optional)
 
-Respond ONLY with a valid JSON array. No markdown, no explanation, no wrapping.`;
+Do NOT think or reason. Respond ONLY with a valid JSON array. No markdown, no explanation, no wrapping, no <think> tags.`;
 
 export function isAIAvailable() {
   return !!HF_TOKEN;
@@ -52,9 +53,11 @@ export async function generateForm(description, onChunk) {
   const client = new InferenceClient(HF_TOKEN);
 
   let fullText = '';
+  let thinking = false;
 
   for await (const chunk of client.chatCompletionStream({
     model: MODEL,
+    provider: PROVIDER,
     messages: [
       { role: 'user', content: `${SYSTEM_PROMPT}\n\nUser request: "${description}"` },
     ],
@@ -63,15 +66,29 @@ export async function generateForm(description, onChunk) {
   })) {
     const delta = chunk.choices?.[0]?.delta?.content || '';
     fullText += delta;
-    if (onChunk) onChunk(delta, fullText);
+
+    // Hide <think> block from stream preview
+    if (delta.includes('<think>')) thinking = true;
+    if (thinking) {
+      if (fullText.includes('</think>')) {
+        thinking = false;
+        const visible = fullText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+        if (onChunk) onChunk('', visible);
+      }
+    } else {
+      const visible = fullText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+      if (onChunk) onChunk(delta, visible);
+    }
   }
 
   return parseQuestions(fullText);
 }
 
 function parseQuestions(raw) {
-  // Extract JSON array from response (strip any accidental markdown fences)
-  let cleaned = raw.trim();
+  // Strip <think>...</think> blocks (Qwen3 thinking mode)
+  let cleaned = raw.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+  // Strip accidental markdown fences
   const fenceMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenceMatch) cleaned = fenceMatch[1].trim();
 
