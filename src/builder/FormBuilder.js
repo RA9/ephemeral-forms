@@ -1,6 +1,7 @@
 import Sortable from 'sortablejs';
 import { createIcons, Save, Eye, Share2, Plus, GripVertical, Trash2, Settings, ChevronDown, Type, AlignLeft, CheckSquare, List, Circle, ArrowUpCircle, Calendar, Clock, Upload, Layout, Edit2, Copy, X, Square, ChevronRight, FileText, Sigma, Hash, ArrowRight, CornerDownRight, Sparkles, Loader } from 'lucide';
 import { createQuestion, getAllQuestionTypes, getQuestionType } from './questionTypes.js';
+import { getValidatorsForType, VALIDATORS } from './validators.js';
 import { createForm, getForm, updateForm } from '../storage/formStore.js';
 import { showToast, deepClone, escapeHtml } from '../utils.js';
 import { navigateTo } from '../router.js';
@@ -380,6 +381,7 @@ export async function renderFormBuilder(container, formId) {
                 <span class="toggle-slider"></span>
               </label>
             </label>
+            ${renderValidationUI(q)}
           </div>
         </div>
       </div>
@@ -444,6 +446,66 @@ export async function renderFormBuilder(container, formId) {
 
     // section_header options are now handled in the step header/footer, not here
     return '';
+  };
+
+  // ---- Validation rules UI ----
+
+  const renderValidationUI = (q) => {
+    const available = getValidatorsForType(q.type);
+    if (available.length <= 1) return ''; // only "none" — skip for types with no validators
+
+    const rules = q.validation || [];
+    const activeTypes = rules.map(r => r.type);
+
+    return `
+      <div class="validation-section" data-id="${q.id}">
+        <div class="validation-header">
+          <span class="validation-title">Validation</span>
+          <select class="select validation-add-select" data-id="${q.id}">
+            <option value="">+ Add rule</option>
+            ${available.filter(v => v.key !== 'none' && !activeTypes.includes(v.key)).map(v =>
+              `<option value="${v.key}">${v.label}</option>`
+            ).join('')}
+          </select>
+        </div>
+        ${rules.length > 0 ? `
+          <div class="validation-rules">
+            ${rules.map((rule, ri) => {
+              const def = VALIDATORS[rule.type];
+              if (!def) return '';
+              return `
+                <div class="validation-rule" data-id="${q.id}" data-rule-index="${ri}">
+                  <span class="validation-rule-label">${def.label}</span>
+                  ${def.hasParam ? renderValidationParam(q.id, ri, rule, def) : ''}
+                  <button class="btn-icon btn-sm validation-rule-remove" data-id="${q.id}" data-rule-index="${ri}" title="Remove rule">
+                    <i data-lucide="x" style="width:12px;height:12px;"></i>
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  };
+
+  const renderValidationParam = (qId, ruleIndex, rule, def) => {
+    const param = def.hasParam;
+    if (param === 'pattern') {
+      return `
+        <input type="text" class="input input-sm validation-param" data-id="${qId}" data-rule-index="${ruleIndex}" data-param="pattern"
+          value="${escapeHtml(rule.pattern || '')}" placeholder="Regex pattern" />
+        <input type="text" class="input input-sm validation-param" data-id="${qId}" data-rule-index="${ruleIndex}" data-param="patternMessage"
+          value="${escapeHtml(rule.patternMessage || '')}" placeholder="Error message" />
+      `;
+    }
+    if (param === 'minDate' || param === 'maxDate') {
+      return `<input type="date" class="input input-sm validation-param" data-id="${qId}" data-rule-index="${ruleIndex}" data-param="${param}"
+        value="${rule[param] || ''}" />`;
+    }
+    // Numeric params
+    return `<input type="number" class="input input-sm validation-param" data-id="${qId}" data-rule-index="${ruleIndex}" data-param="${param}"
+      value="${rule[param] ?? ''}" placeholder="${def.label}" />`;
   };
 
   // ---- Preview ----
@@ -815,6 +877,42 @@ export async function renderFormBuilder(container, formId) {
       el.addEventListener('input', (e) => {
         const q = questions.find(q => q.id === e.target.dataset.id);
         if (q) q[e.target.dataset.field] = e.target.value;
+        autoSave();
+      });
+    });
+
+    // ---- Validation rules ----
+    container.querySelectorAll('.validation-add-select').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const q = questions.find(q => q.id === e.target.dataset.id);
+        if (!q || !e.target.value) return;
+        if (!q.validation) q.validation = [];
+        q.validation.push({ type: e.target.value });
+        render();
+        autoSave();
+      });
+    });
+
+    container.querySelectorAll('.validation-rule-remove').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const q = questions.find(q => q.id === btn.dataset.id);
+        if (!q || !q.validation) return;
+        q.validation.splice(parseInt(btn.dataset.ruleIndex), 1);
+        render();
+        autoSave();
+      });
+    });
+
+    container.querySelectorAll('.validation-param').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const q = questions.find(q => q.id === e.target.dataset.id);
+        if (!q || !q.validation) return;
+        const rule = q.validation[parseInt(e.target.dataset.ruleIndex)];
+        if (!rule) return;
+        const param = e.target.dataset.param;
+        const val = e.target.type === 'number' ? (e.target.value === '' ? undefined : parseFloat(e.target.value)) : e.target.value;
+        rule[param] = val;
         autoSave();
       });
     });

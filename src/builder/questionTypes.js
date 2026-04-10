@@ -1,6 +1,7 @@
 // Question Type Registry
 // Each question type provides: render (for responder), renderEditor (for builder), validate, getDefault
 import { v4 as uuidv4 } from 'uuid';
+import { runValidation } from './validators.js';
 
 const questionTypes = new Map();
 
@@ -39,7 +40,7 @@ registerQuestionType('short_text', {
   label: 'Short Answer',
   icon: 'type',
   category: 'text',
-  getDefault: () => ({ placeholder: '' }),
+  getDefault: () => ({ placeholder: '', validation: [] }),
   render: (question, value, onChange) => {
     const input = document.createElement('input');
     input.type = 'text';
@@ -51,6 +52,7 @@ registerQuestionType('short_text', {
   },
   validate: (question, value) => {
     if (question.required && (!value || !value.trim())) return 'This field is required';
+    if (value && value.trim()) return runValidation(question, value.trim());
     return null;
   },
 });
@@ -59,7 +61,7 @@ registerQuestionType('long_text', {
   label: 'Paragraph',
   icon: 'align-left',
   category: 'text',
-  getDefault: () => ({ placeholder: '' }),
+  getDefault: () => ({ placeholder: '', validation: [] }),
   render: (question, value, onChange) => {
     const textarea = document.createElement('textarea');
     textarea.className = 'textarea';
@@ -70,6 +72,7 @@ registerQuestionType('long_text', {
   },
   validate: (question, value) => {
     if (question.required && (!value || !value.trim())) return 'This field is required';
+    if (value && value.trim()) return runValidation(question, value.trim());
     return null;
   },
 });
@@ -132,7 +135,7 @@ registerQuestionType('checkboxes', {
   label: 'Checkboxes',
   icon: 'check-square',
   category: 'choice',
-  getDefault: () => ({ options: ['Option 1', 'Option 2', 'Option 3'] }),
+  getDefault: () => ({ options: ['Option 1', 'Option 2', 'Option 3'], validation: [] }),
   render: (question, value, onChange) => {
     const container = document.createElement('div');
     container.className = 'choice-options';
@@ -156,6 +159,7 @@ registerQuestionType('checkboxes', {
   },
   validate: (question, value) => {
     if (question.required && (!Array.isArray(value) || value.length === 0)) return 'Please select at least one option';
+    if (Array.isArray(value) && value.length > 0) return runValidation(question, value);
     return null;
   },
 });
@@ -227,7 +231,7 @@ registerQuestionType('date', {
   label: 'Date',
   icon: 'calendar',
   category: 'other',
-  getDefault: () => ({}),
+  getDefault: () => ({ validation: [] }),
   render: (question, value, onChange) => {
     const input = document.createElement('input');
     input.type = 'date';
@@ -238,6 +242,7 @@ registerQuestionType('date', {
   },
   validate: (question, value) => {
     if (question.required && !value) return 'Please select a date';
+    if (value) return runValidation(question, value);
     return null;
   },
 });
