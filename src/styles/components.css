@@ -238,7 +238,7 @@
   box-shadow: var(--shadow-lg);
   font-size: var(--font-sm);
   pointer-events: auto;
-  animation: toastIn var(--transition-normal) ease;
+  animation: toastIn 250ms ease;
   max-width: 380px;
 }
 .toast-success { border-left: 3px solid var(--success); }
@@ -250,7 +250,7 @@
   to { opacity: 1; transform: translateX(0); }
 }
 .toast-out {
-  animation: toastOut var(--transition-fast) ease forwards;
+  animation: toastOut 200ms ease forwards;
 }
 @keyframes toastOut {
   to { opacity: 0; transform: translateX(40px); }

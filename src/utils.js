@@ -33,6 +33,8 @@ export function showToast(message, type = 'info', duration = 3000) {
   setTimeout(() => {
     toast.classList.add('toast-out');
     toast.addEventListener('animationend', () => toast.remove());
+    // Fallback removal if animationend doesn't fire
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 500);
   }, duration);
 }
 
