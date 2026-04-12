@@ -4,5 +4,6 @@
 import post1 from './introducing-ephemeral-forms.md?raw';
 import post2 from './ai-form-generation.md?raw';
 import post3 from './privacy-and-offline-first.md?raw';
+import post4 from './wordpress-plugin.md?raw';
 
-export const blogPosts = [post1, post2, post3];
+export const blogPosts = [post1, post2, post3, post4];

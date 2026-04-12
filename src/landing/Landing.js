@@ -239,6 +239,26 @@ function renderPage(container, hasIdentity) {
         </button>
       </section>
 
+      <!-- ===== INTEGRATIONS ===== -->
+      <section class="lp-integrations">
+        <div class="lp-section-head">
+          <h2 class="lp-section-title">Integrations</h2>
+          <p class="lp-section-sub">Bring Ephemeral Forms to your existing tools.</p>
+        </div>
+        <div class="lp-integrations-grid">
+          <a href="/ephemeral-forms-wp.zip" download class="lp-integration-card reveal">
+            <div class="lp-integration-icon">
+              <svg viewBox="0 0 32 32" width="32" height="32" fill="none"><circle cx="16" cy="16" r="16" fill="#21759b"/><path d="M4.8 16c0 3.6 2.1 6.7 5.1 8.2L5.6 12.4C5.1 13.5 4.8 14.7 4.8 16zm18.8-.6c0-1.1-.4-1.9-.7-2.5-.5-.7-.9-1.4-.9-2.1 0-.8.6-1.6 1.5-1.6h.1A11.2 11.2 0 0 0 5 11.8h.7c1.2 0 3-.1 3-.1a.5.5 0 0 1 .1.7s-.6.1-.7.1l-2 5.8 2.9 8.7 4.8-14.5-.1-.1c-.6 0-1.2-.1-1.2-.1a.5.5 0 0 1 .1-.7s1.9.1 3 .1c1.2 0 3-.1 3-.1a.5.5 0 0 1 .1.7s-.7.1-.7.1l-2 5.9 1.6 5.3c.1 0 2.3-7.3 2.3-7.3.6-1.5.8-2.4.8-3.3z" fill="white"/><path d="M16.3 17.2l-2.8 8.3a11.2 11.2 0 0 0 6.9-.2l-.1-.1-3-8zM25.6 11.3c.1.5.1 1.1.1 1.7 0 1.7-.3 3.6-1.3 6l-5.1 14.7A11.2 11.2 0 0 0 25.6 11.3z" fill="white"/></svg>
+            </div>
+            <div class="lp-integration-info">
+              <h3>WordPress Plugin</h3>
+              <p>Embed forms in any page or post with a shortcode or Gutenberg block.</p>
+            </div>
+            <span class="lp-integration-badge">Download ZIP</span>
+          </a>
+        </div>
+      </section>
+
       <!-- ===== FOOTER ===== -->
       <footer class="lp-footer">
         <div class="lp-footer-inner">
