@@ -7,6 +7,7 @@ import './responder/styles.css';
 import './dashboard/styles.css';
 import './plugins/styles.css';
 import './docs/styles.css';
+import './blog/styles.css';
 
 import { registerRoute, startRouter } from './router.js';
 import { renderAppShell } from './app.js';
@@ -19,6 +20,7 @@ import { renderManageDashboard } from './dashboard/ManageDashboard.js';
 
 import { renderPluginManager } from './plugins/PluginManager.js';
 import { renderDocs } from './docs/Docs.js';
+import { renderBlogList, renderBlogPost } from './blog/Blog.js';
 import { getCustomPlugins } from './storage/pluginStore.js';
 
 // Import built-in plugins
@@ -125,6 +127,16 @@ async function init() {
     if (shell) shell.classList.add('responder-mode');
     return renderDocs(contentArea);
   });
+  registerRoute('/blog', () => {
+    const shell = document.querySelector('.app-shell');
+    if (shell) shell.classList.add('responder-mode');
+    return renderBlogList(contentArea);
+  });
+  registerRoute('/blog/:slug', (params) => {
+    const shell = document.querySelector('.app-shell');
+    if (shell) shell.classList.add('responder-mode');
+    return renderBlogPost(contentArea, params.slug);
+  });
 
   // Start Router
   startRouter();
@@ -136,7 +148,7 @@ window.addEventListener('hashchange', () => {
   const hash = window.location.hash;
   const shell = document.querySelector('.app-shell');
   if (shell) {
-    if ((hash.startsWith('#/form/') && !hash.endsWith('/responses')) || hash.startsWith('#/share/') || hash === '#/docs') {
+    if ((hash.startsWith('#/form/') && !hash.endsWith('/responses')) || hash.startsWith('#/share/') || hash === '#/docs' || hash.startsWith('#/blog')) {
       shell.classList.add('responder-mode');
     } else {
       shell.classList.remove('responder-mode');

@@ -1,90 +1,142 @@
-# ✦ Ephemeral Forms
+# Ephemeral Forms
 
-Ephemeral Forms is a modern, zero-login, offline-first form builder. Built with a focus on privacy and speed, all your forms and responses are stored directly in your browser's IndexedDB. No accounts, no servers, and no tracking required.
+A modern, zero-login, offline-first form builder with AI-powered generation, real-time collaboration, and cross-device sync. Built entirely with vanilla JavaScript — no frameworks, no bloat.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![PWA](https://img.shields.io/badge/PWA-Ready-success)
 ![Storage](https://img.shields.io/badge/Storage-IndexedDB-orange)
+![Firebase](https://img.shields.io/badge/Cloud-Firebase-yellow)
 
-## ✨ Features
+## Features
 
-- **📊 Dashboard & Analytics**: Track responses with beautiful Chart.js visualizations.
-- **📝 Powerful Form Builder**: Drag-and-drop reordering, 10+ question types, and instant auto-save.
-- **🧩 Plugin System**: Extend the app with custom question types, themes, and hooks.
-- **🔀 Conditional Logic**: Create dynamic, branching forms that react to user input.
-- **✍️ Advanced Inputs**: Signature pads, star ratings, file uploads, and more.
-- **📱 Responsive & PWA**: Fully mobile-ready and installable for offline use.
-- **🔒 Privacy First**: All data stays in your browser. No login, no cloud, no leaks.
+### Core
+- **Form Builder** — Drag-and-drop reordering, 10+ question types, multi-step forms, auto-save, and cover image uploads
+- **AI Form Generation** — Describe what you need in plain text, get a complete form with title, description, and questions (powered by Qwen3-8B via HuggingFace Inference)
+- **Field Validation** — Built-in validators for email, URL, phone, number, zip code, min/max length, date ranges, regex patterns, and more
+- **Dashboard & Analytics** — Track responses with Chart.js sparklines, per-question insights, and timeline views
+- **Form Responder** — Clean, themed response pages with cover images, progress steppers, and wave hero headers
 
-## 🚀 Getting Started
+### Collaboration & Sync
+- **Passphrase-Based Identity** — No email/password accounts. Create an identity with a name and passphrase, sync across devices
+- **Magic Link Sharing** — Share forms via expiring links with real-time Firestore sync
+- **Cross-Device Management** — Access shared form responses from any device via the Manage Dashboard
+- **Collaborators & Audit Trails** — Invite collaborators with invite codes, track all activity
+
+### Plugins
+- **Plugin System** — Extend with custom question types, themes, and hooks via `window.EphemeralPlugins.register()`
+- **Built-in Plugins** — Rating stars, signature pad, conditional logic, form stepper, MathJax display
+- **Cloud Plugin Sync** — Custom plugins sync to Firestore and load on shared form responses
+
+### Infrastructure
+- **Offline-First PWA** — IndexedDB primary storage, service worker with SPA fallback, installable
+- **Dark Mode** — Full theme support with CSS custom properties
+- **Google Analytics** — Route-level page view tracking
+- **GitHub Pages CI/CD** — Automated build and deploy via GitHub Actions
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Build | Vite 6 |
+| Language | Vanilla JavaScript (ES modules) |
+| Local Storage | IndexedDB via [idb](https://www.npmjs.com/package/idb) |
+| Cloud | Firebase Firestore |
+| AI | HuggingFace Inference API (Qwen3-8B on Fireworks) |
+| Charts | Chart.js 4 |
+| Icons | Lucide |
+| Drag & Drop | SortableJS |
+| Crypto | Web Crypto API (PBKDF2) |
+| Analytics | Google Analytics 4 |
+
+## Getting Started
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
-- npm (v6 or higher)
+- Node.js 18+
+- npm 8+
+- A Firebase project (for sharing/sync features)
+- HuggingFace API token (for AI generation, optional)
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/eform.git
-   cd eform
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-### Building for Production
-
-To create a production-ready bundle:
 ```bash
-npm run build
+git clone https://github.com/csnamah/ephemeral-forms.git
+cd ephemeral-forms
+npm install
 ```
 
-## 🏗 Tech Stack
+### Environment Variables
 
-- **Core**: Vite, Vanilla JavaScript
-- **Storage**: IndexedDB (via [idb](https://www.npmjs.com/package/idb))
-- **Charts**: [Chart.js](https://www.chartjs.org/)
-- **UI**: Modern Vanilla CSS (Glassmorphism, Dark Mode)
-- **Utilities**: SortableJS, UUID
+Create a `.env` file in the project root:
 
-## 🧩 Plugins
+```env
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+VITE_HF_TOKEN=hf_your_token
+```
 
-Ephemeral Forms features a modular plugin system. You can easily extend the application by building or loading custom JavaScript plugins right from the **Plugin Manager** UI.
+Firebase and HuggingFace tokens are optional — the app works fully offline without them.
 
-### Built-in Plugins
-- **Rating Stars**: Interactive 1-5 or 1-10 star rating questions.
-- **Signature Pad**: Canvas-based signature input with touch support.
-- **Conditional Logic**: Basic branching and logic engine for dynamic forms.
+### Development
 
-### Adding Custom Plugins
-1. Open the **Plugins** page from the sidebar menu.
-2. Click **Add Custom Plugin**.
-3. Paste your plugin JavaScript code (which must call `window.EphemeralPlugins.register(...)`).
-4. Click Install! The plugin will be saved to IndexedDB and automatically loaded every time you open the app.
+```bash
+npm run dev
+```
 
-## 🗺️ Roadmap
+### Production Build
 
-Here are the features prioritized for future development:
+```bash
+npm run build
+npm run preview
+```
 
-1. **Advanced Routing Engine**: Deeper conditional logic with multi-path branching and skip logic.
-2. **Offline Data Sync (Backend Integration)**: Ability to optionally configure Firebase or Supabase to sync your local queue automatically when network is restored.
-3. **Webhooks & Integrations**: Send submissions instantly to Zapier, Google Sheets, or Slack.
-4. **Theme Builder UI**: A visual editor to define custom typography, layout spacing, and complex color palettes beyond the single primary hex code.
-5. **Collaborative Editing**: Peer-to-peer form editing over WebRTC.
+## Project Structure
 
-## 🤝 Contributing
+```
+src/
+  ai/              # AI form generation (HuggingFace integration)
+  builder/         # Form builder, question types, validators
+  dashboard/       # Dashboard, analytics, manage dashboard
+  docs/            # In-app documentation
+  firebase/        # Firebase config, share service, creator service, image service
+  landing/         # Landing page
+  plugins/         # Plugin system and built-in plugins
+  responder/       # Form responder (local + shared)
+  sharing/         # Share modal
+  storage/         # IndexedDB stores (forms, responses, plugins, creator)
+  styles/          # Global CSS (variables, base, components, layout)
+  utils/           # Crypto utilities
+```
 
-We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started.
+## Deployment
 
-## 📄 License
+The project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that automatically builds and deploys to GitHub Pages on push to `main`. Add your environment variables as repository secrets.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Firebase Setup
+
+### Firestore Rules
+
+Deploy the included `firestore.rules`:
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+Collections used: `creators`, `shared_forms`, `magic_links`, `shared_responses`, `collaborators`, `invite_codes`, `audit_logs`, `shared_plugins`
+
+## Contributing
+
+Contributions welcome! Please open an issue or submit a pull request.
+
+## License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+Made with ❤️ Grand Kru.

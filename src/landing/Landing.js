@@ -39,6 +39,7 @@ function renderPage(container, hasIdentity) {
             <button class="lp-nav-link lp-theme-toggle" id="landing-theme-toggle" title="${isDark ? 'Light' : 'Dark'} mode">
               <i data-lucide="${isDark ? 'sun' : 'moon'}" style="width:16px;height:16px;"></i>
             </button>
+            <button class="lp-nav-link" id="landing-nav-blog">Blog</button>
             ${hasIdentity ? '<button class="lp-nav-link" id="landing-nav-docs">Docs</button>' : ''}
             ${hasIdentity
               ? '<button class="lp-nav-cta" id="landing-cta-nav">Dashboard</button>'
@@ -246,6 +247,7 @@ function renderPage(container, hasIdentity) {
                  <button class="lp-footer-link" id="landing-footer-build">Builder</button>`
               : `<button class="lp-footer-link" id="landing-footer-getstarted">Get Started</button>`
             }
+            <button class="lp-footer-link" id="landing-footer-blog">Blog</button>
             <button class="lp-footer-link" id="landing-footer-docs">Docs</button>
           </div>
           <div class="lp-footer-love">Made ❤️ Grand Kru.</div>
@@ -266,6 +268,7 @@ function renderPage(container, hasIdentity) {
     if (hasIdentity) navigateTo('/dashboard');
     else showOnboarding(container);
   });
+  container.querySelector('#landing-nav-blog')?.addEventListener('click', () => navigateTo('/blog'));
   container.querySelector('#landing-nav-docs')?.addEventListener('click', () => navigateTo('/docs'));
   container.querySelector('#landing-cta-bottom').addEventListener('click', () => {
     if (hasIdentity) navigateTo('/dashboard');
@@ -275,6 +278,7 @@ function renderPage(container, hasIdentity) {
   // Footer links (only rendered when hasIdentity)
   container.querySelector('#landing-footer-dashboard')?.addEventListener('click', () => navigateTo('/dashboard'));
   container.querySelector('#landing-footer-build')?.addEventListener('click', () => navigateTo('/build'));
+  container.querySelector('#landing-footer-blog')?.addEventListener('click', () => navigateTo('/blog'));
   container.querySelector('#landing-footer-docs')?.addEventListener('click', () => navigateTo('/docs'));
   container.querySelector('#landing-footer-getstarted')?.addEventListener('click', () => showOnboarding(container));
 
