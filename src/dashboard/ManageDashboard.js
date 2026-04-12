@@ -414,7 +414,7 @@ function renderTable(questions, responses) {
       <table class="responses-table">
         <thead><tr><th>#</th><th>Submitted</th>${questions.map(q => `<th title="${escapeAttr(q.label)}">${truncate(q.label || 'Untitled', 20)}</th>`).join('')}</tr></thead>
         <tbody>
-          ${responses.map((r, i) => `<tr><td>${responses.length - i}</td><td><span class="chip">${formatDate(r.submittedAt)}</span></td>${questions.map(q => `<td>${formatAnswer(r.answers?.[q.id])}</td>`).join('')}</tr>`).join('')}
+          ${responses.map((r, i) => `<tr><td>${i + 1}</td><td><span class="chip">${formatDate(r.submittedAt)}</span></td>${questions.map(q => `<td>${formatAnswer(r.answers?.[q.id])}</td>`).join('')}</tr>`).join('')}
         </tbody>
       </table>
     </div>

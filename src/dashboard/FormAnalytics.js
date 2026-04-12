@@ -499,7 +499,7 @@ export async function renderFormAnalytics(container, formId) {
           <tbody>
             ${responses.map((r, i) => `
               <tr>
-                <td>${responses.length - i}</td>
+                <td>${i + 1}</td>
                 <td><span class="chip">${formatDate(r.submittedAt)}</span></td>
                 ${questions.map(q => `<td>${formatAnswer(r.answers?.[q.id])}</td>`).join('')}
                 <td>
