@@ -1,14 +1,11 @@
 /* ===== SETTINGS STYLES ===== */
 
-.page-container.settings-page {
-  max-width: 680px;
-}
-
 .settings-sections {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: var(--space-6);
 }
+
 
 .settings-section {
   padding: var(--space-6);
@@ -133,7 +130,10 @@
   flex-shrink: 0;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .settings-sections {
+    grid-template-columns: 1fr;
+  }
   .settings-section {
     padding: var(--space-4);
   }
