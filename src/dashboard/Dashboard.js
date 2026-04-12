@@ -6,17 +6,53 @@ import { showToast, showConfirm, formatDate, formatNumber, escapeHtml, escapeAtt
 import { navigateTo } from '../router.js';
 import { showShareModal } from '../sharing/ShareModal.js';
 import { isAIAvailable } from '../ai/formGenerator.js';
+import { getRemoteResponses } from '../firebase/shareService.js';
+import { getShareMeta } from '../storage/shareStore.js';
 
 Chart.register(...registerables);
 
 export async function renderDashboard(container) {
   const forms = await listForms();
   
-  // Get stats for each form
+  // Get stats for each form (local + remote)
   const formStats = await Promise.all(
     forms.map(async (form) => {
-      const stats = await getResponseStats(form.id);
-      return { ...form, stats };
+      const localStats = await getResponseStats(form.id);
+
+      // Merge remote responses for shared forms
+      let remoteCount = 0;
+      let remoteTodayCount = 0;
+      let remoteDailyCounts = Array(7).fill(0);
+      try {
+        const meta = await getShareMeta(form.id);
+        if (meta?.shared) {
+          const remote = await getRemoteResponses(form.id, meta.formKey || null);
+          // Deduplicate: only count remote responses not already in local
+          const localIds = new Set((await import('../storage/responseStore.js').then(m => m.getResponses(form.id))).map(r => r.id));
+          const uniqueRemote = remote.filter(r => !localIds.has(r.id));
+          remoteCount = uniqueRemote.length;
+
+          const now = new Date();
+          const todayStr = now.toDateString();
+          remoteTodayCount = uniqueRemote.filter(r => new Date(r.submittedAt).toDateString() === todayStr).length;
+
+          for (let i = 0; i < 7; i++) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - (6 - i));
+            const ds = d.toDateString();
+            remoteDailyCounts[i] = uniqueRemote.filter(r => new Date(r.submittedAt).toDateString() === ds).length;
+          }
+        }
+      } catch { /* Remote fetch failed — use local only */ }
+
+      const mergedStats = {
+        total: (localStats.total || 0) + remoteCount,
+        today: (localStats.today || 0) + remoteTodayCount,
+        latest: localStats.latest,
+        dailyCounts: localStats.dailyCounts.map((v, i) => v + remoteDailyCounts[i]),
+      };
+
+      return { ...form, stats: mergedStats };
     })
   );
 
