@@ -1,7 +1,7 @@
 import { Chart, registerables } from 'chart.js';
 import { createIcons, FileText, BarChart3, TrendingUp, Plus, Search, Edit2, Share2, Copy, Trash2, Sparkles, Image as ImageIcon } from 'lucide';
 import { listForms, deleteForm, duplicateForm, getForm } from '../storage/formStore.js';
-import { getResponseCount, getResponseStats } from '../storage/responseStore.js';
+import { getResponses, getResponseStats } from '../storage/responseStore.js';
 import { showToast, showConfirm, formatDate, formatNumber, escapeHtml, escapeAttr } from '../utils.js';
 import { navigateTo } from '../router.js';
 import { showShareModal } from '../sharing/ShareModal.js';
@@ -28,7 +28,8 @@ export async function renderDashboard(container) {
         if (meta?.shared) {
           const remote = await getRemoteResponses(form.id, meta.formKey || null);
           // Deduplicate: only count remote responses not already in local
-          const localIds = new Set((await import('../storage/responseStore.js').then(m => m.getResponses(form.id))).map(r => r.id));
+          const localResponses = await getResponses(form.id);
+          const localIds = new Set(localResponses.map(r => r.id));
           const uniqueRemote = remote.filter(r => !localIds.has(r.id));
           remoteCount = uniqueRemote.length;
 
