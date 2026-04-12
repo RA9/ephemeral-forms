@@ -1,9 +1,13 @@
 {
-  "name": "eform",
+  "name": "ephemeral-forms",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Ephemeral Forms — Zero-login form builder with offline-first approach",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ra9/ephemeral-forms.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

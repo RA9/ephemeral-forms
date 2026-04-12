@@ -165,6 +165,7 @@ window.EphemeralPlugins.register({
           <div class="docs-footer-links">
             <button class="docs-footer-link" id="docs-footer-home">Home</button>
             <button class="docs-footer-link" id="docs-footer-dashboard">Dashboard</button>
+            <a href="https://github.com/ra9/ephemeral-forms" target="_blank" rel="noopener noreferrer" class="docs-footer-link">GitHub</a>
           </div>
         </div>
       </footer>

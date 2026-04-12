@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Ephemeral Forms
- * Plugin URI:  https://github.com/anthropics/ephemeral-forms
+ * Plugin URI:  https://github.com/ra9/ephemeral-forms
  * Description: Embed privacy-first, offline-capable forms into any WordPress page or post.
  * Version:     1.0.0
  * Author:      Ephemeral Forms

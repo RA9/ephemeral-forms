@@ -80,4 +80,4 @@ This is v1 — a lightweight embed approach. We're exploring a deeper native int
 
 ---
 
-Get the plugin from the [downloads section](/#/) on our landing page, or grab it directly from the [GitHub repository](https://github.com/anthropics/ephemeral-forms).
+Get the plugin from the [downloads section](/#/) on our landing page, or grab it directly from the [GitHub repository](https://github.com/ra9/ephemeral-forms).

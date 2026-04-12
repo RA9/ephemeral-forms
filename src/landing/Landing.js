@@ -274,6 +274,7 @@ function renderPage(container, hasIdentity) {
             }
             <button class="lp-footer-link" id="landing-footer-blog">Blog</button>
             <button class="lp-footer-link" id="landing-footer-docs">Docs</button>
+            <a href="https://github.com/ra9/ephemeral-forms" target="_blank" rel="noopener noreferrer" class="lp-footer-link">GitHub</a>
           </div>
           <div class="lp-footer-love">Made <span style="color:#6c5ce7;">&hearts;</span> Grand Kru.</div>
         </div>
