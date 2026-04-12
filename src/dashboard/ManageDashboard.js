@@ -105,9 +105,9 @@ function renderPassphraseGate(container, formId) {
         return;
       }
 
-      setManageSession(formId, collab);
+      setManageSession(formId, { ...collab, _passphrase: pass });
       await addAuditLog(formId, collab.displayName, 'logged_in');
-      await renderDashboard(container, formId, collab);
+      await renderDashboard(container, formId, { ...collab, _passphrase: pass });
     } catch (err) {
       errorEl.textContent = 'Error: ' + err.message;
       btn.textContent = 'Unlock';
@@ -207,7 +207,7 @@ async function renderDashboard(container, formId, session) {
 
   let data;
   try {
-    data = await getSharedFormData(formId);
+    data = await getSharedFormData(formId, session._passphrase || null);
   } catch (err) {
     container.innerHTML = `<div class="page-container fade-in" style="text-align:center;padding-top:var(--space-16);"><h2>Error loading data</h2><p style="color:var(--text-secondary)">${escapeHtml(err.message)}</p></div>`;
     return;

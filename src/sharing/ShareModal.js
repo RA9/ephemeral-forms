@@ -17,8 +17,9 @@ function formatTTL(expiresAt) {
   return `${Math.floor(diff / 60000)}m remaining`;
 }
 
-function buildShareURL(token) {
-  return `${window.location.origin}${window.location.pathname}#/share/${token}`;
+function buildShareURL(token, formKey) {
+  const base = `${window.location.origin}${window.location.pathname}#/share/${token}`;
+  return formKey ? `${base}?ek=${formKey}` : base;
 }
 
 function buildManageURL(formId) {
@@ -60,7 +61,7 @@ export async function showShareModal(form) {
 
   if (linkStatus?.active) {
     // Show active link view
-    const shareUrl = buildShareURL(linkStatus.token);
+    const shareUrl = buildShareURL(linkStatus.token, meta?.formKey);
     const manageUrl = buildManageURL(form.id);
 
     const result = await showModal({
@@ -147,7 +148,7 @@ async function handleShareWithCreator(form, creatorId, displayName) {
         // (the workspace session is the real auth)
         const tempPass = creatorId + '_' + form.id; // deterministic per-form passphrase for backward compat
         const res = await shareForm(form, displayName, tempPass, creatorId);
-        await saveShareMeta(form.id, { shared: true, ownerName: displayName, token: res.token, expiresAt: res.expiresAt });
+        await saveShareMeta(form.id, { shared: true, ownerName: displayName, token: res.token, expiresAt: res.expiresAt, formKey: res.formKey });
         // Sync custom plugins
         try { const cp = await getCustomPlugins(); await autoSyncFormPlugins(creatorId, form, cp); } catch {}
         close();
@@ -283,7 +284,7 @@ async function handleFirstTimeSetup(form) {
 
         // Now share the form
         const res = await shareForm(form, name, pass, creator.creatorId);
-        await saveShareMeta(form.id, { shared: true, ownerName: name, token: res.token, expiresAt: res.expiresAt });
+        await saveShareMeta(form.id, { shared: true, ownerName: name, token: res.token, expiresAt: res.expiresAt, formKey: res.formKey });
         // Sync custom plugins
         try { const cp = await getCustomPlugins(); await autoSyncFormPlugins(creator.creatorId, form, cp); } catch {}
 

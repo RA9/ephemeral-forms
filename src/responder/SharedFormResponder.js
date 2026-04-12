@@ -28,7 +28,19 @@ export async function renderSharedFormResponder(container, token) {
     return;
   }
 
-  let { form, expiresAt, formId, pluginIds } = result;
+  let { form, expiresAt, formId, pluginIds, encrypted } = result;
+
+  // Extract encryption key from URL hash query param ?ek=
+  let formKey = null;
+  try {
+    const hashPart = window.location.hash;
+    const qIdx = hashPart.indexOf('?');
+    if (qIdx !== -1) {
+      const params = new URLSearchParams(hashPart.substring(qIdx));
+      formKey = params.get('ek') || null;
+    }
+  } catch {}
+
   setMeta(form.title || 'Shared Form', form.description || `Fill out "${form.title || 'this form'}" on Ephemeral Forms.`);
 
   // Load remote custom plugins before rendering
@@ -343,7 +355,7 @@ export async function renderSharedFormResponder(container, token) {
     }
 
     try {
-      await submitSharedResponse(token, { ...answers });
+      await submitSharedResponse(token, { ...answers }, formKey);
       submitted = true;
       render();
     } catch (err) {

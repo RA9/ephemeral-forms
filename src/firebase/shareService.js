@@ -6,7 +6,7 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { nanoid } from 'nanoid';
-import { hashPassphrase, verifyPassphrase } from '../utils/crypto.js';
+import { hashPassphrase, verifyPassphrase, generateFormKey, wrapFormKey, unwrapFormKey, encryptData, decryptData } from '../utils/crypto.js';
 
 const SHARED_FORMS = 'shared_forms';
 const MAGIC_LINKS = 'magic_links';
@@ -163,6 +163,10 @@ export async function shareForm(form, ownerName, passphrase, creatorId = null) {
   const now = new Date().toISOString();
   const expires = expiresAtFromDays(await getExpiryDays());
 
+  // Generate encryption key for responses
+  const formKey = generateFormKey();
+  const { wrappedKey, keySalt } = await wrapFormKey(formKey, passphrase);
+
   // Store the form
   const formDoc = {
     formJson: JSON.stringify(form),
@@ -170,6 +174,9 @@ export async function shareForm(form, ownerName, passphrase, creatorId = null) {
     masterHash,
     ownerName,
     pluginIds: [],
+    wrappedKey,
+    keySalt,
+    encrypted: true,
     createdAt: now,
     updatedAt: now,
   };
@@ -191,7 +198,7 @@ export async function shareForm(form, ownerName, passphrase, creatorId = null) {
   // Audit
   await addAuditLog(form.id, ownerName, 'shared_form', { token });
 
-  return { token, expiresAt: expires };
+  return { token, expiresAt: expires, formKey };
 }
 
 // ============================================================
@@ -212,7 +219,7 @@ export async function getSharedForm(token) {
   const formData = formSnap.data();
   const form = JSON.parse(formData.formJson);
   const pluginIds = formData.pluginIds || [];
-  return { form, expiresAt: link.expiresAt, token, formId: link.formId, pluginIds };
+  return { form, expiresAt: link.expiresAt, token, formId: link.formId, pluginIds, encrypted: !!formData.encrypted };
 }
 
 // ============================================================
@@ -232,7 +239,7 @@ export function listenToSharedForm(formId, callback) {
 // SUBMIT RESPONSE (respondent side)
 // ============================================================
 
-export async function submitSharedResponse(token, answers) {
+export async function submitSharedResponse(token, answers, formKey) {
   const linkSnap = await getDoc(doc(db, MAGIC_LINKS, token));
   if (!linkSnap.exists()) throw new Error('Link not found');
 
@@ -241,10 +248,22 @@ export async function submitSharedResponse(token, answers) {
     throw new Error('Link expired');
   }
 
+  const answersStr = JSON.stringify(answers);
+  let storedAnswers;
+  let encrypted = false;
+
+  if (formKey) {
+    storedAnswers = await encryptData(answersStr, formKey);
+    encrypted = true;
+  } else {
+    storedAnswers = answersStr;
+  }
+
   const responseId = nanoid(16);
   await setDoc(doc(db, SHARED_RESPONSES, responseId), {
     formId: link.formId,
-    answersJson: JSON.stringify(answers),
+    answersJson: storedAnswers,
+    encrypted,
     submittedAt: new Date().toISOString(),
   });
 
@@ -255,23 +274,39 @@ export async function submitSharedResponse(token, answers) {
 // GET REMOTE RESPONSES (authenticated collaborator)
 // ============================================================
 
-export async function getRemoteResponses(formId) {
+export async function getRemoteResponses(formId, formKey) {
   const q = query(
     collection(db, SHARED_RESPONSES),
     where('formId', '==', formId),
     orderBy('submittedAt', 'desc')
   );
   const snap = await getDocs(q);
-  return snap.docs.map(d => {
+  const results = [];
+  for (const d of snap.docs) {
     const data = d.data();
-    return {
+    let answers;
+    if (data.encrypted && formKey) {
+      try {
+        const decrypted = await decryptData(data.answersJson, formKey);
+        answers = JSON.parse(decrypted);
+      } catch {
+        answers = { _encrypted: true, _error: 'Decryption failed' };
+      }
+    } else if (data.encrypted && !formKey) {
+      answers = { _encrypted: true, _error: 'No decryption key' };
+    } else {
+      answers = JSON.parse(data.answersJson);
+    }
+    results.push({
       id: d.id,
       formId: data.formId,
-      answers: JSON.parse(data.answersJson),
+      answers,
+      encrypted: !!data.encrypted,
       submittedAt: data.submittedAt,
       source: 'remote',
-    };
-  });
+    });
+  }
+  return results;
 }
 
 // ============================================================
@@ -371,16 +406,27 @@ export async function changePassphrase(collaboratorId, newPassphrase, actor) {
 // GET SHARED FORM METADATA (for manage dashboard)
 // ============================================================
 
-export async function getSharedFormData(formId) {
+export async function getSharedFormData(formId, passphrase) {
   const formSnap = await getDoc(doc(db, SHARED_FORMS, formId));
   if (!formSnap.exists()) return null;
 
   const formData = formSnap.data();
   const form = JSON.parse(formData.formJson);
-  const responses = await getRemoteResponses(formId);
+
+  // Attempt to unwrap the form key for decrypting responses
+  let formKey = null;
+  if (formData.encrypted && formData.wrappedKey && formData.keySalt && passphrase) {
+    try {
+      formKey = await unwrapFormKey(formData.wrappedKey, formData.keySalt, passphrase);
+    } catch {
+      // Wrong passphrase or corrupt key — responses will show as encrypted
+    }
+  }
+
+  const responses = await getRemoteResponses(formId, formKey);
   const linkStatus = await getLinkStatus(formId);
   const collaborators = await getCollaborators(formId);
   const auditLogs = await getAuditLogs(formId);
 
-  return { form, formId, responses, linkStatus, collaborators, auditLogs };
+  return { form, formId, responses, linkStatus, collaborators, auditLogs, encrypted: !!formData.encrypted };
 }

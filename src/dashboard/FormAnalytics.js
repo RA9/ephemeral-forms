@@ -135,7 +135,7 @@ export async function renderFormAnalytics(container, formId) {
   try {
     const meta = await getShareMeta(formId);
     if (meta?.shared) {
-      remoteResponses = await getRemoteResponses(formId);
+      remoteResponses = await getRemoteResponses(formId, meta.formKey || null);
     }
   } catch { /* Remote fetch failed */ }
 
