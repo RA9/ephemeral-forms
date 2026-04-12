@@ -14,11 +14,18 @@ const SHARED_RESPONSES = 'shared_responses';
 const COLLABORATORS = 'collaborators';
 const AUDIT_LOGS = 'audit_logs';
 
-const TTL_DAYS = 3;
+import { getSetting } from '../storage/settingsStore.js';
 
-function expiresAt() {
+const DEFAULT_TTL_DAYS = 7;
+
+async function getExpiryDays() {
+  const val = await getSetting('shareLinkExpiry');
+  return val || DEFAULT_TTL_DAYS;
+}
+
+function expiresAtFromDays(days) {
   const d = new Date();
-  d.setDate(d.getDate() + TTL_DAYS);
+  d.setDate(d.getDate() + days);
   return d.toISOString();
 }
 
@@ -120,7 +127,7 @@ export async function createInviteCode(formId, role = 'editor') {
     role,
     used: false,
     createdAt: new Date().toISOString(),
-    expiresAt: expiresAt(), // same 3-day TTL
+    expiresAt: expiresAtFromDays(await getExpiryDays()),
   });
   return code;
 }
@@ -154,7 +161,7 @@ export async function shareForm(form, ownerName, passphrase, creatorId = null) {
   const { salt: masterSalt, hash: masterHash } = await hashPassphrase(passphrase);
   const token = nanoid(16);
   const now = new Date().toISOString();
-  const expires = expiresAt();
+  const expires = expiresAtFromDays(await getExpiryDays());
 
   // Store the form
   const formDoc = {
@@ -280,7 +287,7 @@ export async function regenerateLink(formId, actor) {
   }
 
   const token = nanoid(16);
-  const expires = expiresAt();
+  const expires = expiresAtFromDays(await getExpiryDays());
   await setDoc(doc(db, MAGIC_LINKS, token), {
     formId,
     expiresAt: expires,
@@ -290,6 +297,30 @@ export async function regenerateLink(formId, actor) {
 
   await addAuditLog(formId, actor, 'regenerated_link', { token });
   return { token, expiresAt: expires };
+}
+
+// ============================================================
+// REFRESH LINK EXPIRY (extend without regenerating)
+// ============================================================
+
+export async function refreshLinkExpiry(formId, days) {
+  const expiryDays = days || await getExpiryDays();
+  const q = query(collection(db, MAGIC_LINKS), where('formId', '==', formId));
+  const snap = await getDocs(q);
+
+  let refreshed = null;
+  for (const linkDoc of snap.docs) {
+    const data = linkDoc.data();
+    if (!data.isRevoked) {
+      const newExpiry = expiresAtFromDays(expiryDays);
+      await updateDoc(linkDoc.ref, { expiresAt: newExpiry });
+      refreshed = { token: linkDoc.id, expiresAt: newExpiry };
+    }
+  }
+
+  if (!refreshed) throw new Error('No active link found to refresh');
+  await addAuditLog(formId, 'system', 'refreshed_link_expiry', { days: expiryDays });
+  return refreshed;
 }
 
 // ============================================================

@@ -120,7 +120,7 @@ async function handleShareWithCreator(form, creatorId, displayName) {
       </div>
       <div class="modal-body">
         <p style="color:var(--text-secondary);font-size:var(--font-sm);margin-bottom:var(--space-4);">
-          Sharing as <strong>${displayName}</strong>. A magic link will be generated with a 3-day TTL.
+          Sharing as <strong>${displayName}</strong>. A magic link will be generated based on your expiry settings.
         </p>
         <div id="share-error" style="font-size:var(--font-xs);color:var(--error);min-height:16px;"></div>
       </div>

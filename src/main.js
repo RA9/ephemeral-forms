@@ -8,6 +8,7 @@ import './dashboard/styles.css';
 import './plugins/styles.css';
 import './docs/styles.css';
 import './blog/styles.css';
+import './settings/styles.css';
 
 import { registerRoute, startRouter } from './router.js';
 import { renderAppShell } from './app.js';
@@ -21,6 +22,7 @@ import { renderManageDashboard } from './dashboard/ManageDashboard.js';
 import { renderPluginManager } from './plugins/PluginManager.js';
 import { renderDocs } from './docs/Docs.js';
 import { renderBlogList, renderBlogPost } from './blog/Blog.js';
+import { renderSettings } from './settings/Settings.js';
 import { getCustomPlugins } from './storage/pluginStore.js';
 
 // Import built-in plugins
@@ -121,6 +123,11 @@ async function init() {
     const shell = document.querySelector('.app-shell');
     if (shell) shell.classList.remove('responder-mode');
     return renderPluginManager(contentArea);
+  });
+  registerRoute('/settings', () => {
+    const shell = document.querySelector('.app-shell');
+    if (shell) shell.classList.remove('responder-mode');
+    return renderSettings(contentArea);
   });
   registerRoute('/docs', () => {
     const shell = document.querySelector('.app-shell');

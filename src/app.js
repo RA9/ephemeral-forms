@@ -1,4 +1,4 @@
-import { createIcons, LayoutDashboard, PlusCircle, Puzzle, Sun, Moon, Menu } from 'lucide';
+import { createIcons, LayoutDashboard, PlusCircle, Puzzle, Settings, Sun, Moon, Menu } from 'lucide';
 import { navigateTo, getCurrentPath } from './router.js';
 
 export function renderAppShell(container) {
@@ -44,6 +44,10 @@ export function renderAppShell(container) {
             <span class="nav-item-icon"><i data-lucide="puzzle"></i></span>
             <span>Plugins</span>
           </button>
+          <button class="nav-item" data-nav="/settings" id="nav-settings">
+            <span class="nav-item-icon"><i data-lucide="settings"></i></span>
+            <span>Settings</span>
+          </button>
         </nav>
 
         <div class="sidebar-footer">
@@ -68,6 +72,7 @@ export function renderAppShell(container) {
       LayoutDashboard,
       PlusCircle,
       Puzzle,
+      Settings,
       Sun,
       Moon,
       Menu
