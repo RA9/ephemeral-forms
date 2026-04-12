@@ -16,8 +16,13 @@ export function renderAppShell(container) {
         <div class="sidebar-header">
           <div class="sidebar-logo-icon">
             <svg viewBox="0 0 32 32" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="32" height="32" rx="8" fill="#6c5ce7"/>
-              <text x="16" y="23" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="700" fill="white">ef</text>
+              <rect x="4" y="2" width="20" height="26" rx="3" fill="#6c5ce7"/>
+              <rect x="8" y="8" width="10" height="2" rx="1" fill="rgba(255,255,255,0.9)"/>
+              <rect x="8" y="13" width="12" height="2" rx="1" fill="rgba(255,255,255,0.6)"/>
+              <rect x="8" y="18" width="8" height="2" rx="1" fill="rgba(255,255,255,0.4)"/>
+              <circle cx="26" cy="6" r="2" fill="#6c5ce7" opacity="0.7"/>
+              <circle cx="28" cy="12" r="1.5" fill="#6c5ce7" opacity="0.45"/>
+              <circle cx="26" cy="17" r="1" fill="#6c5ce7" opacity="0.25"/>
             </svg>
           </div>
           <span class="sidebar-logo">Ephemeral Forms</span>
