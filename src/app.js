@@ -1,4 +1,4 @@
-import { createIcons, LayoutDashboard, PlusCircle, Puzzle, Settings, Sun, Moon, Menu } from 'lucide';
+import { createIcons, LayoutDashboard, PlusCircle, Puzzle, Settings, Sun, Moon, Menu, X } from 'lucide';
 import { navigateTo, getCurrentPath } from './router.js';
 
 export function renderAppShell(container) {
@@ -7,9 +7,6 @@ export function renderAppShell(container) {
 
   container.innerHTML = `
     <div class="app-shell">
-      <button class="mobile-menu-btn" id="mobile-menu-btn">
-        <i data-lucide="menu"></i>
-      </button>
       <div class="sidebar-overlay" id="sidebar-overlay"></div>
       
       <aside class="sidebar" id="sidebar">
@@ -61,6 +58,12 @@ export function renderAppShell(container) {
       </aside>
 
       <main class="main-content">
+        <div class="mobile-toolbar" id="mobile-toolbar">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <i data-lucide="menu"></i>
+          </button>
+          <span class="mobile-toolbar-title">Ephemeral Forms</span>
+        </div>
         <div id="page-content"></div>
       </main>
     </div>
@@ -75,7 +78,8 @@ export function renderAppShell(container) {
       Settings,
       Sun,
       Moon,
-      Menu
+      Menu,
+      X
     }
   });
 
@@ -87,6 +91,9 @@ export function renderAppShell(container) {
   const toggleSidebar = () => {
     sidebar.classList.toggle('open');
     overlay.classList.toggle('open');
+    const isOpen = sidebar.classList.contains('open');
+    mobileBtn.innerHTML = `<i data-lucide="${isOpen ? 'x' : 'menu'}"></i>`;
+    createIcons({ icons: { Menu, X } });
   };
 
   mobileBtn.addEventListener('click', toggleSidebar);
