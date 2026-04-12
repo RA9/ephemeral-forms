@@ -599,16 +599,6 @@
   margin: 0 auto;
 }
 
-.lp-steps-line {
-  position: absolute;
-  top: 40px;
-  left: calc(16.67% + 24px);
-  right: calc(16.67% + 24px);
-  height: 2px;
-  background: linear-gradient(90deg, #a855f7, #00b894, #e17055);
-  opacity: 0.25;
-  border-radius: 1px;
-}
 
 .lp-step-card {
   background: var(--surface);
@@ -728,6 +718,12 @@
   background: var(--surface-hover);
 }
 
+.lp-footer-love {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+  margin-top: var(--space-2);
+}
+
 /* ===== ONBOARDING OVERLAY ===== */
 .lp-onboarding-overlay {
   position: fixed;
@@ -832,6 +828,43 @@
   width: 100%;
 }
 
+.lp-onboarding-tabs {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  margin-bottom: var(--space-5);
+}
+.lp-onboarding-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lp-onboarding-tab:hover {
+  color: var(--text-secondary);
+}
+.lp-onboarding-tab.active {
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.lp-onboarding-panel {
+  animation: lp-fade 0.15s ease;
+}
+
 .lp-onboarding-error {
   font-size: var(--font-xs);
   color: var(--error);
@@ -881,9 +914,6 @@
     grid-template-columns: 1fr;
     max-width: 420px;
     margin: 0 auto;
-  }
-  .lp-steps-line {
-    display: none;
   }
   .lp-footer-inner {
     flex-direction: column;

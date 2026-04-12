@@ -1,8 +1,9 @@
 import { createIcons, Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon, Sparkles } from 'lucide';
 import { navigateTo } from '../router.js';
 import { getCreatorId, saveCreatorId, setWorkspaceSession } from '../storage/creatorStore.js';
-import { createCreator } from '../firebase/creatorService.js';
+import { createCreator, verifyCreator } from '../firebase/creatorService.js';
 import { showToast } from '../utils.js';
+import { RefreshCw } from 'lucide';
 
 export function renderLandingPage(container) {
   let hasIdentity = false;
@@ -194,7 +195,6 @@ function renderPage(container, hasIdentity) {
           <p class="lp-section-sub">From idea to live form in under a minute.</p>
         </div>
         <div class="lp-steps-track">
-          <div class="lp-steps-line" aria-hidden="true"></div>
           <div class="lp-step-card reveal">
             <div class="lp-step-card-icon" style="--step-color: #a855f7; --step-bg: rgba(168,85,247,0.1);">
               <i data-lucide="sparkles"></i>
@@ -248,13 +248,14 @@ function renderPage(container, hasIdentity) {
             }
             <button class="lp-footer-link" id="landing-footer-docs">Docs</button>
           </div>
+          <div class="lp-footer-love">Made ❤️ Grand Kru.</div>
         </div>
       </footer>
 
     </div>
   `;
 
-  createIcons({ icons: { Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon, Sparkles } });
+  createIcons({ icons: { Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon, Sparkles, RefreshCw } });
 
   // ---- Event Bindings ----
   container.querySelector('#landing-cta-nav').addEventListener('click', () => {
@@ -306,30 +307,60 @@ function showOnboarding(container) {
   overlay.innerHTML = `
     <div class="lp-onboarding-card">
       <button class="lp-onboarding-close" id="onboard-close">&times;</button>
-      <div class="lp-onboarding-icon">
-        <i data-lucide="user" style="width:28px;height:28px;"></i>
-      </div>
-      <h2 class="lp-onboarding-title">Set up your identity</h2>
-      <p class="lp-onboarding-desc">Choose a name and passphrase so you can access your forms from any device.</p>
 
-      <div class="lp-onboarding-field">
-        <label for="onboard-name">Display Name</label>
-        <input type="text" class="input" id="onboard-name" placeholder="e.g. Alex" autocomplete="off" />
-      </div>
-      <div class="lp-onboarding-field">
-        <label for="onboard-pass">Passphrase</label>
-        <input type="password" class="input" id="onboard-pass" placeholder="Something memorable" />
-      </div>
-      <div class="lp-onboarding-field">
-        <label for="onboard-pass2">Confirm Passphrase</label>
-        <input type="password" class="input" id="onboard-pass2" placeholder="Type it again" />
+      <div class="lp-onboarding-tabs">
+        <button class="lp-onboarding-tab active" data-tab="create">
+          <i data-lucide="user" style="width:16px;height:16px;"></i> New Identity
+        </button>
+        <button class="lp-onboarding-tab" data-tab="sync">
+          <i data-lucide="refresh-cw" style="width:16px;height:16px;"></i> Sync Device
+        </button>
       </div>
 
-      <div class="lp-onboarding-error" id="onboard-error"></div>
+      <!-- Create tab -->
+      <div class="lp-onboarding-panel" id="panel-create">
+        <p class="lp-onboarding-desc">Choose a name and passphrase so you can access your forms from any device.</p>
 
-      <button class="btn btn-primary" id="onboard-submit" style="width:100%;">
-        Create Identity & Start Building
-      </button>
+        <div class="lp-onboarding-field">
+          <label for="onboard-name">Display Name</label>
+          <input type="text" class="input" id="onboard-name" placeholder="e.g. Alex" autocomplete="off" />
+        </div>
+        <div class="lp-onboarding-field">
+          <label for="onboard-pass">Passphrase</label>
+          <input type="password" class="input" id="onboard-pass" placeholder="Something memorable" />
+        </div>
+        <div class="lp-onboarding-field">
+          <label for="onboard-pass2">Confirm Passphrase</label>
+          <input type="password" class="input" id="onboard-pass2" placeholder="Type it again" />
+        </div>
+
+        <div class="lp-onboarding-error" id="onboard-error"></div>
+
+        <button class="btn btn-primary" id="onboard-submit" style="width:100%;">
+          Create Identity & Start Building
+        </button>
+      </div>
+
+      <!-- Sync tab -->
+      <div class="lp-onboarding-panel" id="panel-sync" style="display:none;">
+        <p class="lp-onboarding-desc">Already have an account? Enter your Creator ID and passphrase to sync this device.</p>
+
+        <div class="lp-onboarding-field">
+          <label for="sync-id">Creator ID</label>
+          <input type="text" class="input" id="sync-id" placeholder="Your creator ID" autocomplete="off" />
+        </div>
+        <div class="lp-onboarding-field">
+          <label for="sync-pass">Passphrase</label>
+          <input type="password" class="input" id="sync-pass" placeholder="Your passphrase" />
+        </div>
+
+        <div class="lp-onboarding-error" id="sync-error"></div>
+
+        <button class="btn btn-primary" id="sync-submit" style="width:100%;">
+          Sync & Continue
+        </button>
+      </div>
+
       <button class="btn btn-ghost" id="onboard-skip" style="width:100%;margin-top:var(--space-2);">
         Skip for now
       </button>
@@ -337,9 +368,9 @@ function showOnboarding(container) {
   `;
 
   container.appendChild(overlay);
-  createIcons({ icons: { User } });
+  createIcons({ icons: { User, RefreshCw } });
 
-  // Focus name field
+  // Focus first field
   overlay.querySelector('#onboard-name')?.focus();
 
   const close = () => overlay.remove();
@@ -350,18 +381,39 @@ function showOnboarding(container) {
     navigateTo('/build');
   });
 
-  // Close on backdrop click
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) close();
   });
 
-  // Enter key submits
-  overlay.querySelectorAll('input').forEach(input => {
+  // ---- Tab switching ----
+  overlay.querySelectorAll('.lp-onboarding-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      overlay.querySelectorAll('.lp-onboarding-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.tab;
+      overlay.querySelector('#panel-create').style.display = target === 'create' ? '' : 'none';
+      overlay.querySelector('#panel-sync').style.display = target === 'sync' ? '' : 'none';
+      // Clear errors on tab switch
+      overlay.querySelectorAll('.lp-onboarding-error').forEach(e => e.textContent = '');
+      // Focus first input of active panel
+      const firstInput = overlay.querySelector(`#panel-${target} input`);
+      if (firstInput) firstInput.focus();
+    });
+  });
+
+  // Enter key submits active panel
+  overlay.querySelectorAll('#panel-create input').forEach(input => {
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') overlay.querySelector('#onboard-submit')?.click();
     });
   });
+  overlay.querySelectorAll('#panel-sync input').forEach(input => {
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') overlay.querySelector('#sync-submit')?.click();
+    });
+  });
 
+  // ---- Create Identity ----
   overlay.querySelector('#onboard-submit').addEventListener('click', async () => {
     const name = overlay.querySelector('#onboard-name')?.value.trim();
     const pass = overlay.querySelector('#onboard-pass')?.value;
@@ -388,6 +440,41 @@ function showOnboarding(container) {
     } catch (err) {
       errEl.textContent = 'Setup failed: ' + err.message;
       btn.textContent = 'Create Identity & Start Building';
+      btn.disabled = false;
+    }
+  });
+
+  // ---- Sync Device ----
+  overlay.querySelector('#sync-submit').addEventListener('click', async () => {
+    const creatorId = overlay.querySelector('#sync-id')?.value.trim();
+    const pass = overlay.querySelector('#sync-pass')?.value;
+    const errEl = overlay.querySelector('#sync-error');
+    const btn = overlay.querySelector('#sync-submit');
+
+    errEl.textContent = '';
+
+    if (!creatorId) { errEl.textContent = 'Please enter your Creator ID.'; return; }
+    if (!pass) { errEl.textContent = 'Please enter your passphrase.'; return; }
+
+    btn.textContent = 'Verifying...';
+    btn.disabled = true;
+
+    try {
+      const creator = await verifyCreator(creatorId, pass);
+      if (!creator) {
+        errEl.textContent = 'Invalid Creator ID or passphrase.';
+        btn.textContent = 'Sync & Continue';
+        btn.disabled = false;
+        return;
+      }
+      await saveCreatorId(creator.creatorId, creator.displayName);
+      setWorkspaceSession(creator);
+      showToast(`Welcome back, ${creator.displayName}!`, 'success');
+      close();
+      navigateTo('/dashboard');
+    } catch (err) {
+      errEl.textContent = 'Sync failed: ' + err.message;
+      btn.textContent = 'Sync & Continue';
       btn.disabled = false;
     }
   });
