@@ -4,11 +4,13 @@ import { getQuestionType } from '../builder/questionTypes.js';
 import { showToast, formatDate, escapeHtml, shuffleArray } from '../utils.js';
 import { createIcons, ChevronLeft, ChevronRight, CheckCircle, Search, ArrowRight } from 'lucide';
 import { runHook } from '../plugins/PluginAPI.js';
+import { setMeta } from '../utils/meta.js';
 
 export async function renderFormResponder(container, formId) {
   const form = await getForm(formId);
 
   if (!form) {
+    setMeta('Form Not Found', 'This form may have been deleted or the link is incorrect.');
     container.innerHTML = `
       <div class="rfp-not-found">
         <div class="rfp-not-found-card">
@@ -24,6 +26,8 @@ export async function renderFormResponder(container, formId) {
     createIcons({ icons: { Search } });
     return;
   }
+
+  setMeta(form.title || 'Form', form.description || `Fill out "${form.title || 'this form'}" on Ephemeral Forms.`);
 
   let questions = [...form.questions];
   if (form.settings.shuffleQuestions) {

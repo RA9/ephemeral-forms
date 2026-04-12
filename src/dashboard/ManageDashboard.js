@@ -13,6 +13,7 @@ import { getQuestionType } from '../builder/questionTypes.js';
 import { showToast, showModal, formatDate, escapeHtml, escapeAttr, truncate, formatAnswer, generateColors } from '../utils.js';
 import { db as firestoreDb } from '../firebase/config.js';
 import { doc, getDoc } from 'firebase/firestore';
+import { setMeta } from '../utils/meta.js';
 
 Chart.register(...registerables);
 
@@ -38,10 +39,12 @@ export async function renderManageDashboard(container, formId) {
   }
 
   if (!session) {
+    setMeta('Manage Form', 'Authenticate to manage this shared form.');
     renderPassphraseGate(container, formId);
     return;
   }
 
+  setMeta('Manage Form', 'View responses, collaborators, and audit logs for this shared form.');
   // Session exists — load dashboard
   await renderDashboard(container, formId, session);
 }

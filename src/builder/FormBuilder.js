@@ -9,6 +9,7 @@ import { showShareModal } from '../sharing/ShareModal.js';
 import { getLinkStatus, resyncSharedForm } from '../firebase/shareService.js';
 import { isAIAvailable, generateForm, getAIUsage } from '../ai/formGenerator.js';
 import { processImageFile } from '../firebase/imageService.js';
+import { setMeta } from '../utils/meta.js';
 import { Image as ImageIcon } from 'lucide';
 
 export async function renderFormBuilder(container, formId) {
@@ -28,6 +29,8 @@ export async function renderFormBuilder(container, formId) {
     history.replaceState(null, '', `#/build/${form.id}`);
     formId = form.id;
   }
+
+  setMeta(form.title ? `Edit — ${form.title}` : 'Create Form', 'Build your form with the drag-and-drop builder or AI generation.');
 
   let questions = deepClone(form.questions || []);
   let selectedQuestionId = null;

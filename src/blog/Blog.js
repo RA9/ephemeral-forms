@@ -3,6 +3,7 @@ import { createIcons, Calendar, User, ArrowLeft, BookOpen, Clock, Search, Sun, M
 import { navigateTo } from '../router.js';
 import { getCreatorId } from '../storage/creatorStore.js';
 import { blogPosts } from '../../content/blog/index.js';
+import { setMeta } from '../utils/meta.js';
 
 // ---- Helpers ----
 
@@ -236,6 +237,12 @@ export async function renderBlogPost(container, slug) {
   const hasIdentity = !!identity;
   const posts = getAllPosts();
   const post = posts.find(p => p.meta.slug === slug);
+
+  if (post) {
+    setMeta(post.meta.title, post.meta.summary || `Read "${post.meta.title}" on the Ephemeral Forms blog.`);
+  } else {
+    setMeta('Post Not Found', 'This blog post could not be found.');
+  }
 
   function render() {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';

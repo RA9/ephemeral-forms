@@ -5,6 +5,7 @@ import { getQuestionType } from '../builder/questionTypes.js';
 import { showToast, escapeHtml, shuffleArray } from '../utils.js';
 import { createIcons, ChevronLeft, ArrowRight, CheckCircle, Search, AlertTriangle } from 'lucide';
 import { runHook } from '../plugins/PluginAPI.js';
+import { setMeta } from '../utils/meta.js';
 
 export async function renderSharedFormResponder(container, token) {
   // Fetch form from Firestore
@@ -18,14 +19,17 @@ export async function renderSharedFormResponder(container, token) {
 
   if (result.error) {
     if (result.error === 'expired' || result.error === 'revoked') {
+      setMeta('Link Expired', 'This shared form link has expired.');
       renderExpired(container);
     } else {
+      setMeta('Form Not Found', 'This shared form could not be found.');
       renderError(container, 'Form Not Found', 'This form may have been deleted or the link is incorrect.');
     }
     return;
   }
 
   let { form, expiresAt, formId, pluginIds } = result;
+  setMeta(form.title || 'Shared Form', form.description || `Fill out "${form.title || 'this form'}" on Ephemeral Forms.`);
 
   // Load remote custom plugins before rendering
   if (pluginIds && pluginIds.length > 0) {

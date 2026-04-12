@@ -8,6 +8,7 @@ import { navigateTo } from '../router.js';
 import { showShareModal } from '../sharing/ShareModal.js';
 import { getRemoteResponses } from '../firebase/shareService.js';
 import { getShareMeta } from '../storage/shareStore.js';
+import { setMeta } from '../utils/meta.js';
 
 Chart.register(...registerables);
 
@@ -126,6 +127,7 @@ export async function renderFormAnalytics(container, formId) {
     navigateTo('/dashboard');
     return;
   }
+  setMeta(`Analytics — ${form.title || 'Untitled'}`, `Response analytics for "${form.title || 'Untitled'}" form.`);
 
   const localResponses = (await getResponses(formId)).map(r => ({ ...r, source: 'local' }));
 
