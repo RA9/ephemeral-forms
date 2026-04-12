@@ -95,7 +95,7 @@ function renderFooter(hasIdentity) {
           <button class="lp-footer-link" id="blog-footer-blog">Blog</button>
           <button class="lp-footer-link" id="blog-footer-docs">Docs</button>
         </div>
-        <div class="lp-footer-love">Made ❤️ Grand Kru.</div>
+        <div class="lp-footer-love">Made <span style="color:#6c5ce7;">❤️</span> Grand Kru.</div>
       </div>
     </footer>
   `;
