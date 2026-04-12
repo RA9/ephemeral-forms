@@ -1,6 +1,6 @@
 /* ===== SETTINGS STYLES ===== */
 
-.settings-page {
+.page-container.settings-page {
   max-width: 680px;
 }
 

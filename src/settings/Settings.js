@@ -28,10 +28,12 @@ export async function renderSettings(container) {
 
   function render() {
     container.innerHTML = `
-      <div class="settings-page fade-in">
-        <div class="page-header">
-          <h1 class="page-title"><i data-lucide="settings" style="width:22px;height:22px;vertical-align:-3px;margin-right:var(--space-2);"></i> Settings</h1>
-          <p class="page-subtitle">Configure global preferences for your workspace.</p>
+      <div class="page-container settings-page fade-in">
+        <div class="page-title-row">
+          <div>
+            <h1 class="page-title"><i data-lucide="settings" style="width:22px;height:22px;vertical-align:-3px;margin-right:var(--space-2);"></i> Settings</h1>
+            <p class="page-subtitle">Configure global preferences for your workspace.</p>
+          </div>
         </div>
 
         <div class="settings-sections">
