@@ -1,4 +1,4 @@
-import { createIcons, Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon, Sparkles } from 'lucide';
+import { createIcons, Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon, Sparkles, Check } from 'lucide';
 import { navigateTo } from '../router.js';
 import { getCreatorId, saveCreatorId, setWorkspaceSession } from '../storage/creatorStore.js';
 import { createCreator, verifyCreator } from '../firebase/creatorService.js';
@@ -26,7 +26,7 @@ function renderPage(container, hasIdentity) {
       <!-- ===== NAV ===== -->
       <nav class="lp-nav" id="lp-nav">
         <div class="lp-nav-inner">
-          <div class="lp-logo">
+          <button class="lp-logo" id="landing-logo" aria-label="Ephemeral Forms home">
             <div class="lp-logo-icon">
               <svg viewBox="0 0 32 32" width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="4" y="2" width="20" height="26" rx="3" fill="#6c5ce7"/>
@@ -39,13 +39,15 @@ function renderPage(container, hasIdentity) {
               </svg>
             </div>
             <span class="lp-logo-text">Ephemeral Forms</span>
-          </div>
+          </button>
           <div class="lp-nav-links">
-            <button class="lp-nav-link lp-theme-toggle" id="landing-theme-toggle" title="${isDark ? 'Light' : 'Dark'} mode">
-              <i data-lucide="${isDark ? 'sun' : 'moon'}" style="width:16px;height:16px;"></i>
-            </button>
+            <button class="lp-nav-link lp-nav-section-link" id="landing-nav-features">Features</button>
+            <button class="lp-nav-link lp-nav-section-link" id="landing-nav-how">How it works</button>
             <button class="lp-nav-link" id="landing-nav-blog">Blog</button>
             ${hasIdentity ? '<button class="lp-nav-link" id="landing-nav-docs">Docs</button>' : ''}
+            <button class="lp-nav-link lp-theme-toggle" id="landing-theme-toggle" aria-label="Switch to ${isDark ? 'light' : 'dark'} mode" title="${isDark ? 'Light' : 'Dark'} mode">
+              <i data-lucide="${isDark ? 'sun' : 'moon'}" style="width:16px;height:16px;"></i>
+            </button>
             ${hasIdentity
               ? '<button class="lp-nav-cta" id="landing-cta-nav">Dashboard</button>'
               : '<button class="lp-nav-cta" id="landing-cta-nav">Get Started</button>'
@@ -54,62 +56,35 @@ function renderPage(container, hasIdentity) {
         </div>
       </nav>
 
-      <!-- ===== MORPH BACKDROP ===== -->
-      <div class="lp-backdrop" aria-hidden="true">
-        <svg class="lp-backdrop-svg" viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="lbg1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="var(--primary-500)" stop-opacity="0.07"/>
-              <stop offset="100%" stop-color="var(--accent-500)" stop-opacity="0.03"/>
-            </linearGradient>
-            <linearGradient id="lbg2" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="var(--primary-400)" stop-opacity="0.04"/>
-              <stop offset="100%" stop-color="var(--accent-400)" stop-opacity="0.07"/>
-            </linearGradient>
-            <radialGradient id="lbg3" cx="50%" cy="30%" r="60%">
-              <stop offset="0%" stop-color="var(--primary-500)" stop-opacity="0.05"/>
-              <stop offset="100%" stop-color="var(--primary-500)" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <path class="lp-blob lp-blob--1" fill="url(#lbg1)"
-            d="M0,400 C180,300 360,500 540,380 C720,260 900,440 1080,350 C1260,260 1380,400 1440,350 L1440,0 L0,0 Z"/>
-          <path class="lp-blob lp-blob--2" fill="url(#lbg2)"
-            d="M0,300 C240,420 480,260 720,360 C960,460 1200,300 1440,400 L1440,900 L0,900 Z"/>
-          <circle class="lp-glow" cx="720" cy="280" r="400" fill="url(#lbg3)"/>
-          <g class="lp-grid-dots" fill="var(--primary-500)" opacity="0.035">
-            ${Array.from({ length: 80 }, (_, i) => {
-              const x = (i % 16) * 95 + 30;
-              const y = Math.floor(i / 16) * 160 + 80;
-              return `<circle cx="${x}" cy="${y}" r="1.5"/>`;
-            }).join('')}
-          </g>
-        </svg>
-      </div>
 
       <!-- ===== HERO ===== -->
-      <section class="lp-hero">
+      <main>
+      <section class="lp-hero" aria-labelledby="landing-heading">
         <div class="lp-hero-body">
-          <h1 class="lp-hero-title">Describe it. We'll build it.<br>AI-powered forms in seconds.</h1>
+          <div class="lp-eyebrow"><i data-lucide="sparkles"></i> Form building, simplified</div>
+          <h1 class="lp-hero-title" id="landing-heading">Turn an idea into a live form in seconds.</h1>
           <p class="lp-hero-sub">
-            Just tell the AI what you need — a job application, feedback survey, or registration form — and
-            it generates the whole thing. No sign-ups, no barriers, no learning curve.
+            Describe what you need and let AI create the questions, structure, and flow. Edit anything, share one link, and see every response in one place.
           </p>
           <div class="lp-hero-actions">
             ${hasIdentity
-              ? '<button class="lp-btn-primary" id="landing-cta-main">Go to Dashboard <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></button>'
-              : '<button class="lp-btn-primary" id="landing-cta-main">Get Started <i data-lucide="arrow-right" style="width:16px;height:16px;"></i></button>'
+              ? '<button class="lp-btn-primary" id="landing-cta-main">Open dashboard <i data-lucide="arrow-right"></i></button>'
+              : '<button class="lp-btn-primary" id="landing-cta-main">Create your first form <i data-lucide="arrow-right"></i></button>'
             }
+            <button class="lp-btn-secondary" id="landing-see-how">See how it works</button>
           </div>
-          <p class="lp-hero-note">Free forever. No sign-up required. Powered by AI.</p>
+          <ul class="lp-hero-benefits" aria-label="Key benefits">
+            <li><i data-lucide="check"></i>No credit card</li>
+            <li><i data-lucide="check"></i>No setup</li>
+            <li><i data-lucide="check"></i>Free to start</li>
+          </ul>
         </div>
 
         <div class="lp-hero-visual" aria-hidden="true">
           <div class="lp-mock-form">
             <div class="lp-mock-header">
-              <div class="lp-mock-dot" style="background: #ff5f57;"></div>
-              <div class="lp-mock-dot" style="background: #febc2e;"></div>
-              <div class="lp-mock-dot" style="background: #28c840;"></div>
-              <span class="lp-mock-tab"><i data-lucide="sparkles" style="width:12px;height:12px;vertical-align:-1px;margin-right:4px;"></i>AI Form Generator</span>
+              <span class="lp-mock-tab"><i data-lucide="sparkles"></i> AI form generator</span>
+              <span class="lp-mock-status"><span></span> Live preview</span>
             </div>
             <div class="lp-mock-body">
               <div class="lp-mock-field lp-mock-field--active lp-mock-ai-prompt">
@@ -144,9 +119,11 @@ function renderPage(container, hasIdentity) {
       </section>
 
       <!-- ===== FEATURES ===== -->
-      <section class="lp-features">
+      <section class="lp-features" id="landing-features" aria-labelledby="features-heading">
         <div class="lp-section-head">
-          <h2 class="lp-section-title">What you get</h2>
+          <span class="lp-section-kicker">Everything you need</span>
+          <h2 class="lp-section-title" id="features-heading">Create, share, and understand your forms.</h2>
+          <p class="lp-section-sub">Powerful where it matters, simple everywhere else.</p>
         </div>
         <div class="lp-features-grid">
           <div class="lp-feature-card reveal">
@@ -195,48 +172,32 @@ function renderPage(container, hasIdentity) {
       </section>
 
       <!-- ===== HOW IT WORKS ===== -->
-      <section class="lp-how">
+      <section class="lp-how" id="landing-how" aria-labelledby="how-heading">
         <div class="lp-section-head">
-          <h2 class="lp-section-title">Three steps. Zero friction.</h2>
-          <p class="lp-section-sub">From idea to live form in under a minute.</p>
+          <span class="lp-section-kicker">How it works</span>
+          <h2 class="lp-section-title" id="how-heading">From idea to insight in three steps.</h2>
+          <p class="lp-section-sub">No tutorials or complicated setup required.</p>
         </div>
         <div class="lp-steps-track">
           <div class="lp-step-card reveal">
-            <div class="lp-step-card-icon" style="--step-color: #a855f7; --step-bg: rgba(168,85,247,0.1);">
-              <i data-lucide="sparkles"></i>
-            </div>
-            <div class="lp-step-card-num">01</div>
+            <div class="lp-step-card-icon"><i data-lucide="sparkles"></i></div>
+            <div class="lp-step-card-num">Step 01</div>
             <h3 class="lp-step-card-title">Describe your form</h3>
             <p class="lp-step-card-desc">Type what you need in plain English — "a feedback survey with ratings and comments" — and the AI builds the entire form. Or go manual with drag & drop.</p>
           </div>
           <div class="lp-step-card reveal">
-            <div class="lp-step-card-icon" style="--step-color: #00b894; --step-bg: rgba(0,184,148,0.1);">
-              <i data-lucide="share-2"></i>
-            </div>
-            <div class="lp-step-card-num">02</div>
+            <div class="lp-step-card-icon"><i data-lucide="share-2"></i></div>
+            <div class="lp-step-card-num">Step 02</div>
             <h3 class="lp-step-card-title">Share a magic link</h3>
             <p class="lp-step-card-desc">One click generates a shareable link. Respondents don't need an account. Edit your form anytime — changes sync to the live link instantly.</p>
           </div>
           <div class="lp-step-card reveal">
-            <div class="lp-step-card-icon" style="--step-color: #e17055; --step-bg: rgba(225,112,85,0.1);">
-              <i data-lucide="bar-chart-2"></i>
-            </div>
-            <div class="lp-step-card-num">03</div>
+            <div class="lp-step-card-icon"><i data-lucide="bar-chart-2"></i></div>
+            <div class="lp-step-card-num">Step 03</div>
             <h3 class="lp-step-card-title">See results in real-time</h3>
             <p class="lp-step-card-desc">Responses stream into your dashboard with charts, completion rates, and per-question breakdowns. Manage everything from any device.</p>
           </div>
         </div>
-      </section>
-
-      <!-- ===== CTA BANNER ===== -->
-      <section class="lp-cta-banner">
-        ${hasIdentity
-          ? '<h2 class="lp-cta-title">Welcome back.</h2><p class="lp-cta-sub">Pick up where you left off.</p>'
-          : '<h2 class="lp-cta-title">Ready to try it?</h2><p class="lp-cta-sub">No sign-up. No credit card. Just start.</p>'
-        }
-        <button class="lp-btn-primary" id="landing-cta-bottom">
-          ${hasIdentity ? 'Go to Dashboard' : 'Create a Form'} <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
-        </button>
       </section>
 
       <!-- ===== INTEGRATIONS ===== -->
@@ -258,6 +219,19 @@ function renderPage(container, hasIdentity) {
           </a>
         </div>
       </section>
+
+      <!-- ===== CTA BANNER ===== -->
+      <section class="lp-cta-banner">
+        ${hasIdentity
+          ? '<h2 class="lp-cta-title">Welcome back.</h2><p class="lp-cta-sub">Pick up where you left off.</p>'
+          : '<h2 class="lp-cta-title">Your next form is one prompt away.</h2><p class="lp-cta-sub">Start from a description or build it yourself. No credit card required.</p>'
+        }
+        <button class="lp-btn-primary" id="landing-cta-bottom">
+          ${hasIdentity ? 'Go to Dashboard' : 'Create a Form'} <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+        </button>
+      </section>
+
+      </main>
 
       <!-- ===== FOOTER ===== -->
       <footer class="lp-footer">
@@ -283,7 +257,7 @@ function renderPage(container, hasIdentity) {
     </div>
   `;
 
-  createIcons({ icons: { Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon, Sparkles, RefreshCw } });
+  createIcons({ icons: { Shield, Zap, Layout, BarChart2, Puzzle, ArrowRight, Share2, User, Sun, Moon, Sparkles, RefreshCw, Check } });
 
   // ---- Event Bindings ----
   container.querySelector('#landing-cta-nav').addEventListener('click', () => {
@@ -294,6 +268,10 @@ function renderPage(container, hasIdentity) {
     if (hasIdentity) navigateTo('/dashboard');
     else showOnboarding(container);
   });
+  container.querySelector('#landing-logo')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  container.querySelector('#landing-nav-features')?.addEventListener('click', () => container.querySelector('#landing-features')?.scrollIntoView({ behavior: 'smooth' }));
+  container.querySelector('#landing-nav-how')?.addEventListener('click', () => container.querySelector('#landing-how')?.scrollIntoView({ behavior: 'smooth' }));
+  container.querySelector('#landing-see-how')?.addEventListener('click', () => container.querySelector('#landing-how')?.scrollIntoView({ behavior: 'smooth' }));
   container.querySelector('#landing-nav-blog')?.addEventListener('click', () => navigateTo('/blog'));
   container.querySelector('#landing-nav-docs')?.addEventListener('click', () => navigateTo('/docs'));
   container.querySelector('#landing-cta-bottom').addEventListener('click', () => {
@@ -320,7 +298,10 @@ function renderPage(container, hasIdentity) {
   // ---- Reveal on scroll ----
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) entry.target.classList.add('active');
+      if (entry.isIntersecting) {
+        entry.target.classList.add('active');
+        observer.unobserve(entry.target);
+      }
     });
   }, { threshold: 0.15 });
 
@@ -335,8 +316,8 @@ function showOnboarding(container) {
   const overlay = document.createElement('div');
   overlay.className = 'lp-onboarding-overlay';
   overlay.innerHTML = `
-    <div class="lp-onboarding-card">
-      <button class="lp-onboarding-close" id="onboard-close">&times;</button>
+    <div class="lp-onboarding-card" role="dialog" aria-modal="true" aria-label="Get started with Ephemeral Forms">
+      <button class="lp-onboarding-close" id="onboard-close" aria-label="Close onboarding">&times;</button>
 
       <div class="lp-onboarding-tabs">
         <button class="lp-onboarding-tab active" data-tab="create">
