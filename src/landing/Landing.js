@@ -236,21 +236,39 @@ function renderPage(container, hasIdentity) {
       <!-- ===== FOOTER ===== -->
       <footer class="lp-footer">
         <div class="lp-footer-inner">
-          <div class="lp-footer-brand">
-            <svg viewBox="0 0 32 32" width="18" height="18" fill="none"><rect x="4" y="2" width="20" height="26" rx="3" fill="#6c5ce7"/><rect x="8" y="8" width="10" height="2" rx="1" fill="rgba(255,255,255,0.9)"/><rect x="8" y="13" width="12" height="2" rx="1" fill="rgba(255,255,255,0.6)"/><rect x="8" y="18" width="8" height="2" rx="1" fill="rgba(255,255,255,0.4)"/><circle cx="26" cy="6" r="2" fill="#6c5ce7" opacity="0.7"/><circle cx="28" cy="12" r="1.5" fill="#6c5ce7" opacity="0.45"/><circle cx="26" cy="17" r="1" fill="#6c5ce7" opacity="0.25"/></svg>
-            <span>Ephemeral Forms</span>
+          <div class="lp-footer-main">
+            <div class="lp-footer-intro">
+              <button class="lp-footer-brand" id="landing-footer-logo" aria-label="Back to the top">
+                <svg viewBox="0 0 32 32" width="24" height="24" fill="none"><rect x="4" y="2" width="20" height="26" rx="3" fill="#6c5ce7"/><rect x="8" y="8" width="10" height="2" rx="1" fill="rgba(255,255,255,0.9)"/><rect x="8" y="13" width="12" height="2" rx="1" fill="rgba(255,255,255,0.6)"/><rect x="8" y="18" width="8" height="2" rx="1" fill="rgba(255,255,255,0.4)"/><circle cx="26" cy="6" r="2" fill="#6c5ce7" opacity="0.7"/><circle cx="28" cy="12" r="1.5" fill="#6c5ce7" opacity="0.45"/><circle cx="26" cy="17" r="1" fill="#6c5ce7" opacity="0.25"/></svg>
+                <span>Ephemeral Forms</span>
+              </button>
+              <p>Create thoughtful forms quickly, share them anywhere, and understand every response.</p>
+              <span class="lp-footer-promise"><i data-lucide="check"></i> Free to start. No credit card.</span>
+            </div>
+
+            <nav class="lp-footer-nav" aria-label="Footer navigation">
+              <div class="lp-footer-group">
+                <h3>Product</h3>
+                ${hasIdentity
+                  ? `<button class="lp-footer-link" id="landing-footer-dashboard">Dashboard</button>
+                     <button class="lp-footer-link" id="landing-footer-build">Form builder</button>`
+                  : `<button class="lp-footer-link" id="landing-footer-getstarted">Create a form</button>`
+                }
+                <button class="lp-footer-link" id="landing-footer-features">Features</button>
+              </div>
+              <div class="lp-footer-group">
+                <h3>Resources</h3>
+                <button class="lp-footer-link" id="landing-footer-blog">Blog</button>
+                <button class="lp-footer-link" id="landing-footer-docs">Documentation</button>
+                <a href="https://github.com/ra9/ephemeral-forms" target="_blank" rel="noopener noreferrer" class="lp-footer-link">GitHub <span aria-hidden="true">↗</span></a>
+              </div>
+            </nav>
           </div>
-          <div class="lp-footer-links">
-            ${hasIdentity
-              ? `<button class="lp-footer-link" id="landing-footer-dashboard">Dashboard</button>
-                 <button class="lp-footer-link" id="landing-footer-build">Builder</button>`
-              : `<button class="lp-footer-link" id="landing-footer-getstarted">Get Started</button>`
-            }
-            <button class="lp-footer-link" id="landing-footer-blog">Blog</button>
-            <button class="lp-footer-link" id="landing-footer-docs">Docs</button>
-            <a href="https://github.com/ra9/ephemeral-forms" target="_blank" rel="noopener noreferrer" class="lp-footer-link">GitHub</a>
+
+          <div class="lp-footer-bottom">
+            <span>© ${new Date().getFullYear()} Ephemeral Forms</span>
+            <span>Built with care in Grand Kru.</span>
           </div>
-          <div class="lp-footer-love">Made <span style="color:#6c5ce7;">&hearts;</span> Grand Kru.</div>
         </div>
       </footer>
 
@@ -282,6 +300,8 @@ function renderPage(container, hasIdentity) {
   // Footer links (only rendered when hasIdentity)
   container.querySelector('#landing-footer-dashboard')?.addEventListener('click', () => navigateTo('/dashboard'));
   container.querySelector('#landing-footer-build')?.addEventListener('click', () => navigateTo('/build'));
+  container.querySelector('#landing-footer-logo')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  container.querySelector('#landing-footer-features')?.addEventListener('click', () => container.querySelector('#landing-features')?.scrollIntoView({ behavior: 'smooth' }));
   container.querySelector('#landing-footer-blog')?.addEventListener('click', () => navigateTo('/blog'));
   container.querySelector('#landing-footer-docs')?.addEventListener('click', () => navigateTo('/docs'));
   container.querySelector('#landing-footer-getstarted')?.addEventListener('click', () => showOnboarding(container));
